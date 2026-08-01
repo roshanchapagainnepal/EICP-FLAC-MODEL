@@ -1,0 +1,471 @@
+;===========================================================
+; 02_m_eicp.fis
+; Gai & Sanchez (2019) EICP constitutive model for FLAC 8.0
+; User-defined model (UDM) written in FISH.
+;
+; Structure follows FISH Reference Section 2.8, Example 2.29.
+; Return-mapping algorithm follows the Itasca C++ modified
+; Cam-Clay source (modelcamclay.cpp, lines 250-300), extended
+; with the bonding (pb), damage (chi) and sub-loading (R)
+; hardening parameters of Gai & Sanchez.
+;
+; MODEL EQUATIONS (compression positive)
+;   Yield (Eq. 5)  F = q^2 + M^2 p (p - p0),  p0 = R(pc + pb)
+;   Bonding (Eq.3) pb    = a * chi * mc
+;   Damage  (Eq.4) dchi  = -mu * chi * depq
+;   Subload (Eq.6) dR    = -eta * ln(R) * |dep|
+;   Bulk    (Eq.7) K     = (1+e) p / kappa
+;   Shear   (Eq.8) G     = 3(1-2nu)/(2(1+nu)) K
+;   Harden  (Eq.10) dpc  = pc (1+e)/(lambda-kappa) (depv + Ds depq)
+;
+; NOTE ON ln(): FLAC 8.0 FISH defines ln(a) as the NATURAL
+; logarithm and log(a) as base-ten (FISH Reference p. 2-53).
+; The sub-loading law Eq. 6 requires the NATURAL log.
+;
+; NOTE ON ELASTIC MODULI: K depends on p', and zone stresses
+; are UNDEFINED in modes 1, 3 and 4 (FISH Reference 2.8.5).
+; m_e1/m_e2/m_g2 are therefore updated at the end of each
+; zsub cycle in case 2, not precomputed in case 1. Run
+; ini_eicp after the PROPERTY command to seed them correctly.
+;
+; REQUIRES: 01_parameters.fis to have been called first.
+;===========================================================
+;
+def m_eicp
+    constitutive_model 220
+;
+; --- state variables, one set per zone ---
+;   m_e   void ratio                 m_pc  pre-consolidation, Pa
+;   m_mc  calcite content, PERCENT   m_pb  bonding parameter, Pa
+;   m_chi damage factor (0 to 1)     m_r   sub-loading ratio
+;   m_epv m_epq  accumulated plastic volumetric / deviatoric
+;   m_e1 m_e2 m_g2  elastic constants, updated in case 2
+;   m_kb  bulk modulus bound, Pa (stability cap on K)
+;   m_p m_q  mean and deviatoric stress, output only
+;   m_ind 0 elastic, 1 plastic now, 2 plastic in the past
+    f_prop m_e m_pc m_mc m_pb m_chi m_r
+    f_prop m_epv m_epq
+    f_prop m_e1 m_e2 m_g2 m_kb
+    f_prop m_p m_q m_ind
+;
+    case_of mode
+;
+;-----------------------------------------------------------
+; CASE 1 - initialisation and property checking
+;          (called once per zone per STEP command;
+;           zone stresses are NOT available here)
+;-----------------------------------------------------------
+    case 1
+        if m_kb <= 0.0 then
+            m_kb = $kb_dflt
+        end_if
+        if m_e <= 0.0 then
+            m_e = $ini_e
+        end_if
+        if m_pc <= $pc_min then
+            m_pc = $ini_pc
+        end_if
+        if m_chi <= 0.0 then
+            m_chi = $ini_chi
+        end_if
+        if m_chi > 1.0 then
+            m_chi = 1.0
+        end_if
+        if m_r <= 0.0 then
+            m_r = $ini_r
+        end_if
+        if m_r > $r_max then
+            m_r = $r_max
+        end_if
+        if m_mc < 0.0 then
+            m_mc = 0.0
+        end_if
+;
+;       --- bonding parameter, Eq. 3 ---
+        m_pb = $a_pa * m_chi * m_mc
+;
+;       --- fallback moduli if ini_eicp was not run ---
+        if m_e1 <= 0.0 then
+            $zk = (1.0 + m_e) * $ini_pc / $kappa_p
+            if $zk > m_kb then
+                $zk = m_kb
+            end_if
+            $zg  = 1.5 * $zk * (1.0 - 2.0 * $nu_p) / (1.0 + $nu_p)
+            m_e1 = $zk + 4.0 * $zg / 3.0
+            m_e2 = $zk - 2.0 * $zg / 3.0
+            m_g2 = 2.0 * $zg
+        end_if
+;
+;-----------------------------------------------------------
+; CASE 2 - stress update (called once per triangular subzone)
+;-----------------------------------------------------------
+    case 2
+;
+;       --- trial elastic stresses (Example 2.29) ---
+        zs11 = zs11 + zde11 * m_e1 + (zde22 + zde33) * m_e2
+        zs22 = zs22 + (zde11 + zde33) * m_e2 + zde22 * m_e1
+        zs33 = zs33 + (zde11 + zde22) * m_e2 + zde33 * m_e1
+        zs12 = zs12 + zde12 * m_g2
+        zvisc = 1.0
+;
+;       --- invariants, converted to compression positive ---
+        $zp   = -(zs11 + zs22 + zs33) / 3.0
+        $zd11 = zs11 + $zp
+        $zd22 = zs22 + $zp
+        $zd33 = zs33 + $zp
+        $zd12 = zs12
+        $zj2  = 0.5 * ($zd11*$zd11 + $zd22*$zd22 + $zd33*$zd33)
+        $zj2  = $zj2 + $zd12 * $zd12
+        $zq   = sqrt(3.0 * $zj2)
+;
+;       --- sub-loading yield surface, Eq. 5 ---
+        $zp0  = m_r * (m_pc + m_pb)
+        $zm2  = $m_cs * $m_cs
+        $zfs  = $zq * $zq + $zm2 * $zp * ($zp - $zp0)
+;
+        $zpn  = $zp
+        $zqn  = $zq
+        $zdlv = 0.0
+        $zdlq = 0.0
+        $zpls = 0.0
+;
+        if $zfs > 0.0 then
+;
+;           --- current tangent moduli ---
+            $zg = 0.5 * m_g2
+            $zk = m_e1 - 2.0 * m_g2 / 3.0
+;
+;           --- return mapping (associated flow) ---
+            $zsa = 6.0 * $zg * $zq
+            $zsc = $zm2 * (2.0 * $zp - $zp0)
+            $zsb = $zk * $zsc
+            $zba = $zsa * $zsa + $zm2 * $zsb * $zsb
+            $zbb = $zsa * $zq + 0.5 * $zsb * $zsc
+            $zbc = $zfs
+            $zal = 0.0
+;
+            if abs($zba) > 1.0e-20 then
+                $zboa = $zbb / $zba
+                $zval = $zboa * $zboa - $zbc / $zba
+                if $zval < 0.0 then
+                    $zval = 0.0
+                end_if
+                $zv1  = sqrt($zval)
+                $zal  = $zboa + $zv1
+                $zal1 = $zboa - $zv1
+                if abs($zal1) < abs($zal) then
+                    $zal = $zal1
+                end_if
+            else
+                if abs($zbb) > 1.0e-20 then
+                    $zal = 0.5 * $zbc / $zbb
+                end_if
+            end_if
+;
+            if $zal < 0.0 then
+                $zal = 0.0
+            end_if
+;
+            $zqn = $zq - $zsa * $zal
+            $zpn = $zp - $zsb * $zal
+            if $zqn < 0.0 then
+                $zqn = 0.0
+            end_if
+            if $zpn < $p_min then
+                $zpn = $p_min
+            end_if
+;
+;           --- corrected stresses, back to tension positive ---
+            if $zq > 1.0e-20 then
+                $zrat = $zqn / $zq
+                zs11  = $zd11 * $zrat - $zpn
+                zs22  = $zd22 * $zrat - $zpn
+                zs33  = $zd33 * $zrat - $zpn
+                zs12  = $zd12 * $zrat
+            else
+                $zadd = $zpn - $zp
+                zs11  = zs11 - $zadd
+                zs22  = zs22 - $zadd
+                zs33  = zs33 - $zadd
+            end_if
+;
+;           --- plastic strain increments, associated flow ---
+;               depv = lam dF/dp ; depq = lam dF/dq
+            $zdlv = $zal * $zsc
+            $zdlq = 2.0 * $zal * $zq
+            $zpls = 1.0
+            zvisc = 0.0
+        end_if
+;
+;       --- accumulate over subzones (FISH Reference 2.8.6) ---
+        $m_vol_acc  = $m_vol_acc  + zde11 + zde22 + zde33
+        $m_depv_acc = $m_depv_acc + $zdlv
+        $m_depq_acc = $m_depq_acc + $zdlq
+        $m_dept_acc = $m_dept_acc + sqrt($zdlv*$zdlv + $zdlq*$zdlq)
+        $m_p_acc    = $m_p_acc    + $zpn
+        $m_q_acc    = $m_q_acc    + $zqn
+        $m_pls_acc  = $m_pls_acc  + $zpls
+;
+;       --- last subzone: average, evolve state, reset ---
+        if zsub > 0.0 then
+;
+            $zdvol = $m_vol_acc  / zsub
+            $zdepv = $m_depv_acc / zsub
+            $zdepq = $m_depq_acc / zsub
+            $zdept = $m_dept_acc / zsub
+            m_p    = $m_p_acc    / zsub
+            m_q    = $m_q_acc    / zsub
+;
+;           --- void ratio (zdvol is tension positive) ---
+            m_e = m_e + (1.0 + m_e) * $zdvol
+            if m_e < 0.0 then
+                m_e = 0.0
+            end_if
+;
+;           --- accumulated plastic strains ---
+            m_epv = m_epv + $zdepv
+            m_epq = m_epq + $zdepq
+;
+;           --- pre-consolidation pressure, Eq. 10 ---
+;               dpc = pc (1+e)/(lambda-kappa) depv
+;                        + Ds (1+e)/(lambda-kappa) depq
+;               pc multiplies the volumetric term ONLY. The Ds
+;               term is a separate additive increment and is
+;               NOT scaled by pc. Verified against p. 713.
+            $zhfac = (1.0 + m_e) / ($lambda_p - $kappa_p)
+            m_pc = m_pc + $zhfac * (m_pc * $zdepv + $ds_p * $zdepq)
+            if m_pc < $pc_min then
+                m_pc = $pc_min
+            end_if
+;
+;           --- cementation damage, Eq. 4, integrated as an ---
+;               exponential to keep chi strictly positive
+            m_chi = m_chi * exp(-$mu_p * $zdepq)
+            if m_chi < $chi_min then
+                m_chi = $chi_min
+            end_if
+;
+;           --- bonding parameter, Eq. 3 ---
+            m_pb = $a_pa * m_chi * m_mc
+;
+;           --- sub-loading ratio, Eq. 6, ln = natural log ---
+            if m_r < $r_min then
+                m_r = $r_min
+            end_if
+            if m_r < $r_max then
+                m_r = m_r - $eta_p * ln(m_r) * $zdept
+            end_if
+            if m_r > $r_max then
+                m_r = $r_max
+            end_if
+;
+;           --- state indicator: 0 elastic, 1 plastic now, ---
+;               2 elastic now but plastic in the past
+            if $m_pls_acc > 0.0 then
+                m_ind = 1.0
+            else
+                if m_ind = 1.0 then
+                    m_ind = 2.0
+                end_if
+            end_if
+;
+;           --- stress dependent elastic moduli, Eqs. 7 and 8 ---
+            $zpk = m_p
+            if $zpk < $p_min then
+                $zpk = $p_min
+            end_if
+            $zk = (1.0 + m_e) * $zpk / $kappa_p
+            if $zk > m_kb then
+                $zk = m_kb
+            end_if
+            $zg  = 1.5 * $zk * (1.0 - 2.0 * $nu_p) / (1.0 + $nu_p)
+            m_e1 = $zk + 4.0 * $zg / 3.0
+            m_e2 = $zk - 2.0 * $zg / 3.0
+            m_g2 = 2.0 * $zg
+;
+;           --- RESET accumulators (essential, see 2.8.6) ---
+            $m_vol_acc  = 0.0
+            $m_depv_acc = 0.0
+            $m_depq_acc = 0.0
+            $m_dept_acc = 0.0
+            $m_p_acc    = 0.0
+            $m_q_acc    = 0.0
+            $m_pls_acc  = 0.0
+        end_if
+;
+;-----------------------------------------------------------
+; CASE 3 - maximum moduli, used by FLAC for the timestep.
+;          MANDATORY. Called before case 1.
+;-----------------------------------------------------------
+    case 3
+        if m_kb <= 0.0 then
+            m_kb = $kb_dflt
+        end_if
+        if m_e1 <= 0.0 then
+            $ze = m_e
+            if $ze <= 0.0 then
+                $ze = $ini_e
+            end_if
+            $zk = (1.0 + $ze) * $ini_pc / $kappa_p
+            if $zk > m_kb then
+                $zk = m_kb
+            end_if
+            $zg  = 1.5 * $zk * (1.0 - 2.0 * $nu_p) / (1.0 + $nu_p)
+            m_e1 = $zk + 4.0 * $zg / 3.0
+            m_e2 = $zk - 2.0 * $zg / 3.0
+            m_g2 = 2.0 * $zg
+        end_if
+        cm_max = m_e1
+        sm_max = 0.5 * m_g2
+;
+;-----------------------------------------------------------
+; CASE 4 - thermally induced stresses from fictitious strains
+;-----------------------------------------------------------
+    case 4
+        $zk  = m_e1 - 2.0 * m_g2 / 3.0
+        ztsa = ztea * $zk
+        ztsb = zteb * $zk
+        ztsc = ztec * $zk
+        ztsd = zted * $zk
+;
+    end_case
+end
+;
+;===========================================================
+; ini_eicp - seed the stress dependent moduli from the
+;            initial stress state. Run AFTER the PROPERTY
+;            and INITIAL commands, BEFORE the first STEP.
+;
+; This is the analogue of camclay_ini_p in the built-in
+; Cam-Clay model. It is NOT a friend function: it runs
+; outside the UDM and therefore uses (i,j) subscripts.
+;===========================================================
+;
+def ini_eicp
+    loop $ii (1,izones)
+        loop $jj (1,jzones)
+            if model($ii,$jj) = 220 then
+;
+                $ip = -(sxx($ii,$jj) + syy($ii,$jj) + szz($ii,$jj)) / 3.0
+                if $ip < $p_min then
+                    $ip = $p_min
+                end_if
+;
+                if m_kb($ii,$jj) <= 0.0 then
+                    m_kb($ii,$jj) = $kb_dflt
+                end_if
+                if m_e($ii,$jj) <= 0.0 then
+                    m_e($ii,$jj) = $ini_e
+                end_if
+                if m_chi($ii,$jj) <= 0.0 then
+                    m_chi($ii,$jj) = $ini_chi
+                end_if
+                if m_r($ii,$jj) <= 0.0 then
+                    m_r($ii,$jj) = $ini_r
+                end_if
+                if m_pc($ii,$jj) <= $pc_min then
+                    m_pc($ii,$jj) = $ini_pc
+                end_if
+;
+                $ik = (1.0 + m_e($ii,$jj)) * $ip / $kappa_p
+                if $ik > m_kb($ii,$jj) then
+                    $ik = m_kb($ii,$jj)
+                end_if
+                $ig = 1.5 * $ik * (1.0 - 2.0 * $nu_p) / (1.0 + $nu_p)
+;
+                m_e1($ii,$jj) = $ik + 4.0 * $ig / 3.0
+                m_e2($ii,$jj) = $ik - 2.0 * $ig / 3.0
+                m_g2($ii,$jj) = 2.0 * $ig
+;
+                m_pb($ii,$jj)  = $a_pa * m_chi($ii,$jj) * m_mc($ii,$jj)
+                m_p($ii,$jj)   = $ip
+                m_q($ii,$jj)   = 0.0
+                m_ind($ii,$jj) = 0.0
+                m_epv($ii,$jj) = 0.0
+                m_epq($ii,$jj) = 0.0
+            end_if
+        end_loop
+    end_loop
+end
+;
+;===========================================================
+; ini_eicp_r - consistent sub-loading initialisation.
+;
+; In sub-loading surface plasticity the sub-loading surface
+; passes through the CURRENT stress point by construction,
+; so R is NOT a free initial value. Setting F_SUB = 0 at the
+; initial stress state and solving Eq. 5 for R gives
+;
+;     R0 = (q0^2/M^2 + p0^2) / (p0 (pc + pb))
+;
+; which for an isotropic start (q0 = 0) reduces to
+;
+;     R0 = p0' / (pc + pb)
+;
+; CONSEQUENCE: pc and R are coupled. A small starting R (the
+; paper shows R rising from near zero to 1 during shearing,
+; Figure 14) requires a LARGE pc. For R0 = 0.01 at a confining
+; pressure of 100 kPa you need pc + pb = 10 MPa. A pc of
+; 150 kPa with R0 = 0.01 describes a sample at p0' = 1.5 kPa,
+; not 100 kPa, and the first step would project the stress
+; back onto a surface far too small.
+;
+; If R0 comes out greater than 1 the stress state lies outside
+; the bounding surface, meaning pc is too small for the applied
+; confining pressure. $eicp_err is set to 1.0 in that case.
+; ALWAYS check it:   print $eicp_err
+;
+; Use this instead of ini_eicp for any run that starts with a
+; small R. Use plain ini_eicp when you want R held at a fixed
+; value, for example R = 1 to collapse the model to Cam-Clay.
+;===========================================================
+;
+def ini_eicp_r
+;
+    ini_eicp
+    $eicp_err = 0.0
+    $rm2 = $m_cs * $m_cs
+;
+    loop $ii (1,izones)
+        loop $jj (1,jzones)
+            if model($ii,$jj) = 220 then
+;
+                $rp = -(sxx($ii,$jj) + syy($ii,$jj) + szz($ii,$jj)) / 3.0
+                if $rp < $p_min then
+                    $rp = $p_min
+                end_if
+;
+                $rd11 = sxx($ii,$jj) + $rp
+                $rd22 = syy($ii,$jj) + $rp
+                $rd33 = szz($ii,$jj) + $rp
+                $rd12 = sxy($ii,$jj)
+                $rj2  = 0.5 * ($rd11*$rd11 + $rd22*$rd22 + $rd33*$rd33)
+                $rj2  = $rj2 + $rd12 * $rd12
+                $rq   = sqrt(3.0 * $rj2)
+;
+                $rden = $rp * (m_pc($ii,$jj) + m_pb($ii,$jj))
+                if $rden < $p_min then
+                    $rden = $p_min
+                end_if
+;
+                $rr = ($rq*$rq/$rm2 + $rp*$rp) / $rden
+;
+                if $rr > $r_max then
+;                   pc is too small for this confining stress
+                    $eicp_err = 1.0
+                    $rr = $r_max
+                end_if
+                if $rr < $r_min then
+                    $rr = $r_min
+                end_if
+;
+                m_r($ii,$jj) = $rr
+                m_q($ii,$jj) = $rq
+            end_if
+        end_loop
+    end_loop
+end
+;
+;===========================================================
+; EOF
+;===========================================================

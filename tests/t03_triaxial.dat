@@ -1,0 +1,138 @@
+; ==========================================================
+; t03_triaxial.dat
+; TEST 3 - drained triaxial compression, full EICP model.
+;
+; PURPOSE: reproduce Gai & Sanchez (2019) Figure 10 - triaxial
+; compression at 200 kPa confining pressure on samples with
+; different calcite mass contents.
+;
+; Experimental data: Feng and Montoya (2015), paper Table 4.
+;     mc = 0.0 %   e0 = 0.723   (untreated Ottawa sand)
+;     mc = 1.2 %   e0 = 0.718
+;     mc = 2.4 %   e0 = 0.715
+;     mc = 5.3 %   e0 = 0.709
+;
+; UNITS OF mc: PERCENT, not fraction. Eq. 3 is pb = a chi mc
+; with a = 200 kPa, so mc = 2.4 gives pb = 480 kPa, which is
+; the order of magnitude shown in paper Figure 12b. Entering
+; mc as a fraction (0.024) would give pb = 4.8 kPa and the
+; cementation would have essentially no effect.
+;
+; CHOICE OF pc: pc and R are coupled by R0 = p0'/(pc + pb),
+; see the header of ini_eicp_r. pc = 450 kPa with pb = 480 kPa
+; at mc = 2.4% gives R0 about 0.21, and R(pc + pb) then grows
+; to roughly 930 kPa by the time R reaches 1, which is
+; consistent with the peak deviatoric stress reported in the
+; paper. ini_eicp_r computes R0 for each case automatically.
+;
+; TO RUN EACH CASE: edit the two SET lines below and re-run.
+; Start with the untreated case (mc = 0) - it must reproduce
+; paper Figure 6 and validates the host sand parameters
+; before any cementation is introduced.
+;
+; EXPECTED BEHAVIOUR (paper Section 4.3):
+;   1. peak deviatoric stress rises with mc
+;   2. post-peak softening appears only at high mc
+;   3. dilation becomes more marked as mc rises
+;   4. chi falls and R rises monotonically during shearing,
+;      with R reaching 1 at roughly 7% axial strain (Fig. 14)
+; ==========================================================
+;
+config axi
+grid 1 1
+title
+Test 3 - drained triaxial compression at 200 kPa
+;
+; --- model ---
+call ..\scripts\01_parameters.fis
+call ..\scripts\02_m_eicp.fis
+model m_eicp
+;
+; --- CASE SELECTION: edit these two values ---
+set t_mc=0.0        ; calcite mass content in PERCENT
+set t_e0=0.723      ; initial void ratio
+;
+; --- properties ---
+prop dens 1700.0
+prop m_pc 450000.0  m_chi 1.0  m_kb 1.0e10
+;
+def set_case
+    m_mc(1,1) = t_mc
+    m_e(1,1)  = t_e0
+end
+set_case
+;
+; --- initial stress state: isotropic at 200 kPa ---
+ini sxx -200000.0 syy -200000.0 szz -200000.0
+;
+; --- consistent sub-loading initialisation ---
+; computes R0 from the initial stress state and pc
+ini_eicp_r
+;
+; --- CHECK THIS: 1.0 means pc is too small for 200 kPa ---
+print $eicp_err
+print m_r m_pb m_e1
+;
+; --- boundary conditions ---
+; axis of symmetry, base restrained, constant radial stress,
+; strain controlled axial compression on the top boundary
+fix x i=1
+fix y j=1
+apply pressure 200000.0 i=2
+fix y j=2
+ini yvel -2.0e-7 j=2
+;
+; --- monitored quantities ---
+def path
+    t_sa  = -syy(1,1)                    ; axial stress
+    t_sr  = -sxx(1,1)                    ; radial stress
+    t_q   = t_sa - t_sr                  ; deviatoric stress
+    t_p   = -(sxx(1,1) + syy(1,1) + szz(1,1)) / 3.0
+    t_ea  = -ydisp(1,2) * 100.0          ; axial strain, per cent
+    t_e   = m_e(1,1)
+    t_ev  = -(t_e - t_e0) / (1.0 + t_e0) * 100.0  ; vol strain %,
+                                         ; compression positive
+    t_pc  = m_pc(1,1)
+    t_pb  = m_pb(1,1)
+    t_chi = m_chi(1,1)
+    t_r   = m_r(1,1)
+    t_hrd = m_r(1,1) * (m_pc(1,1) + m_pb(1,1))    ; R(pc + pb)
+end
+;
+his nstep 20
+his unbal
+his path
+his t_ea
+his t_q
+his t_p
+his t_ev
+his t_e
+his t_pc
+his t_pb
+his t_chi
+his t_r
+his t_hrd
+;
+step 60000
+;
+; --- results ---
+; History slots: 1 unbal, 2 path, 3 t_ea, 4 t_q, 5 t_p,
+;                6 t_ev, 7 t_e, 8 t_pc, 9 t_pb, 10 t_chi,
+;                11 t_r, 12 t_hrd
+;
+; Figure 10a equivalent: q versus axial strain
+plot his 4 vs 3 hold
+; Figure 10c equivalent: volumetric strain versus axial strain
+plot his 6 vs 3 hold
+; Figure 11 equivalent: stress path in p'-q space
+plot his 4 vs 5 hold
+; Figure 12a equivalent: damage factor and sub-loading ratio
+plot his 10 11 vs 3 hold
+; Figure 12b equivalent: pc, pb and effective hardening parameter
+plot his 8 9 12 vs 3 hold
+;
+print m_e m_pc m_pb m_chi m_r m_ind m_epv m_epq
+;
+save t03_triaxial.sav
+;
+return

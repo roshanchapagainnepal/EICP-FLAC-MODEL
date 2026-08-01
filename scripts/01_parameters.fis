@@ -1,0 +1,75 @@
+;===========================================================
+; 01_parameters.fis
+; Gai & Sanchez (2019), Acta Geotechnica 14:709-726
+; Elastoplastic model for MICP / EICP cemented sand
+;
+; Global material constants and accumulators.
+; Must be called BEFORE 02_m_eicp.fis.
+;
+; All globals use a leading $ so that PRINT fish stays clean
+; (FISH Reference 2.8.8, hint 2). List them with PRINT $fish.
+;
+; UNITS: Pa throughout. Stress is TENSION POSITIVE in FLAC,
+; but p and q inside the model are COMPRESSION POSITIVE.
+;===========================================================
+;
+def eicp_par
+;
+; --- host sand parameters (Gai & Sanchez 2019, Table 1) ---
+    $kappa_p  = 0.003        ; slope of swelling line, e-ln(p')
+    $lambda_p = 0.25         ; slope of normal compression line
+    $m_cs     = 1.09         ; slope of critical state line, M
+;   Ds: dimensionless dilation parameter (Table 1, G&S 2019)
+;   - multiplies deviatoric plastic strain only, not scaled
+;   by p_c in Eq. 10 Version B
+    $ds_p     = 0.04         ; dilation parameter, Ds
+    $nu_p     = 0.17         ; Poisson's ratio
+    $eta_p    = 60.0         ; sub-loading rate parameter, eta
+;
+; --- MICP / EICP parameters (Table 2) ---
+;   NOTE: Eq. 3 is pb = a * chi * mc, and m_mc must be given
+;   in PERCENT, not as a fraction. With a = 200 kPa, a calcite
+;   content of mc = 2.4 gives pb = 480 kPa, which matches the
+;   magnitudes plotted in paper Figure 12b. Entering mc as a
+;   fraction (0.024) gives pb = 4.8 kPa and the cementation
+;   would have no practical effect on the response.
+    $a_pa     = 200000.0     ; bonding scaling constant a  (200 kPa)
+    $mu_p     = 6.5          ; cementation damage rate, mu
+;
+; --- default initial state ---
+    $ini_e    = 0.73         ; void ratio
+    $ini_pc   = 150000.0     ; pre-consolidation pressure (Pa)
+    $ini_r    = 0.01         ; sub-loading ratio R
+    $ini_chi  = 1.0          ; damage factor chi (1 = intact bonding)
+;
+; --- numerical guards ---
+    $p_min    = 1.0          ; floor on mean effective stress (Pa)
+    $pc_min   = 100.0        ; floor on pre-consolidation pressure (Pa)
+    $chi_min  = 1.0e-6       ; floor on damage factor
+    $r_min    = 1.0e-6       ; floor on sub-loading ratio
+    $r_max    = 1.0          ; ceiling on sub-loading ratio
+    $kb_dflt  = 1.0e9        ; default bulk modulus bound (Pa)
+;
+; --- subzone accumulators (reset every zsub cycle) ---
+    $m_vol_acc  = 0.0        ; total volumetric strain
+    $m_depv_acc = 0.0        ; plastic volumetric strain
+    $m_depq_acc = 0.0        ; plastic deviatoric strain
+    $m_dept_acc = 0.0        ; plastic strain norm
+    $m_p_acc    = 0.0        ; mean effective stress
+    $m_q_acc    = 0.0        ; deviatoric stress
+    $m_pls_acc  = 0.0        ; plasticity flag
+;
+end
+;
+eicp_par
+;
+; --- switch: set to 0.0 to drop the Ds shear-hardening term ---
+; --- and recover the classical MCC hardening law.           ---
+def eicp_mcc
+    $ds_p  = 0.0
+    $eta_p = 0.0
+end
+;
+;===========================================================
+; EOF
+;===========================================================

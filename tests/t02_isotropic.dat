@@ -1,0 +1,93 @@
+; ==========================================================
+; t02_isotropic.dat
+; TEST 2 - modified Cam-Clay reduction.
+;
+; PURPOSE: verify the yield surface, the return mapping and
+; the pc hardening law by collapsing the model back to
+; classical modified Cam-Clay.
+;
+; The call to eicp_mcc sets Ds = 0 and eta = 0, which removes
+; the Nova shear-hardening term and freezes the sub-loading
+; ratio. With R = 1 and mc = 0 the yield surface Eq. 5
+;     F = q^2 + M^2 p (p - R(pc + pb))
+; reduces exactly to
+;     F = q^2 + M^2 p (p - pc)
+; which is the built-in modified Cam-Clay surface.
+;
+; EXPECTED RESULT: once p' exceeds pc = 150 kPa the sample
+; must move onto the normal compression line, so t_e against
+; t_lnp must break from slope -kappa (0.003) to slope
+; -lambda (0.25). This slope change is the acceptance
+; criterion. t_ind must switch from 0 to 1 at the break.
+; ==========================================================
+;
+config axi
+grid 1 1
+title
+Test 2 - isotropic compression, Cam-Clay reduction
+;
+; --- model ---
+call ..\scripts\01_parameters.fis
+call ..\scripts\02_m_eicp.fis
+;
+; --- collapse to classical MCC: Ds = 0, eta = 0 ---
+eicp_mcc
+;
+model m_eicp
+;
+; --- properties: R fixed at 1, no cementation ---
+prop dens 1700.0
+prop m_e 0.73  m_pc 150000.0  m_chi 1.0  m_r 1.0  m_mc 0.0
+prop m_kb 1.0e10
+;
+; --- initial stress state: isotropic 100 kPa (inside YS) ---
+ini sxx -100000.0 syy -100000.0 szz -100000.0
+;
+ini_eicp
+;
+; --- boundary conditions: isotropic compression ---
+fix x
+fix y
+ini xvel -1.0e-7 i=2
+ini yvel -1.0e-7 j=2
+;
+; --- monitored quantities ---
+def path
+    t_p   = -(sxx(1,1) + syy(1,1) + szz(1,1)) / 3.0
+    t_lnp = ln(t_p)
+    t_e   = m_e(1,1)
+    t_pc  = m_pc(1,1)
+    t_ind = m_ind(1,1)
+    t_epv = m_epv(1,1)
+end
+;
+his nstep 20
+his unbal
+his path
+his t_p
+his t_lnp
+his t_e
+his t_pc
+his t_ind
+his t_epv
+;
+step 40000
+;
+; --- results ---
+; History slots: 1 unbal, 2 path, 3 t_p, 4 t_lnp, 5 t_e,
+;                6 t_pc, 7 t_ind, 8 t_epv
+;
+; History 5 (t_e) versus history 4 (t_lnp): slope must change
+; from -kappa to -lambda as the sample yields at p' = 150 kPa.
+; History 6 (t_pc) must be flat at 150 kPa then rise with p'.
+; History 7 (t_ind) must switch from 0 to 1 at the break.
+;
+plot his 5 vs 4 hold
+plot his 6 vs 3 hold
+plot his 7 hold
+;
+print m_e m_pc m_r m_chi m_ind m_epv
+;
+save t02_isotropic.sav
+;
+return
