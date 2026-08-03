@@ -48,6 +48,16 @@ call ..\scripts\01_parameters.fis
 call ..\scripts\02_m_eicp.fis
 model m_eicp
 ;
+; --- define the case variables FIRST ---
+; The SET command can only assign to a FISH symbol that already
+; exists. Compiling this def registers t_mc and t_e0, so the SET
+; lines below are then valid. Defining it after the SET lines
+; gives: *** Bad keyword ... t_mc
+def set_case
+    m_mc(1,1) = t_mc
+    m_e(1,1)  = t_e0
+end
+;
 ; --- CASE SELECTION: edit these two values ---
 set t_mc=0.0        ; calcite mass content in PERCENT
 set t_e0=0.723      ; initial void ratio
@@ -56,10 +66,6 @@ set t_e0=0.723      ; initial void ratio
 prop dens 1700.0
 prop m_pc 450000.0  m_chi 1.0  m_kb 1.0e10
 ;
-def set_case
-    m_mc(1,1) = t_mc
-    m_e(1,1)  = t_e0
-end
 set_case
 ;
 ; --- initial stress state: isotropic at 200 kPa ---
