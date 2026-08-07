@@ -59,8 +59,8 @@ def set_case
 end
 ;
 ; --- CASE SELECTION: edit these two values ---
-set t_mc=0.0        ; calcite mass content in PERCENT
-set t_e0=0.723      ; initial void ratio
+set t_mc=2.4        ; calcite mass content in PERCENT
+set t_e0=0.715      ; initial void ratio
 ;
 ; --- properties ---
 prop dens 1700.0
