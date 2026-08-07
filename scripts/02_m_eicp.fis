@@ -315,7 +315,13 @@ def m_eicp
             m_e2 = $zk - 2.0 * $zg / 3.0
             m_g2 = 2.0 * $zg
         end_if
-        cm_max = m_e1
+;       Conservative factor of 2 on cm_max. K = (1+e)p'/kappa
+;       grows as p' rises during shearing, but in small-strain
+;       mode FLAC samples mode 3 only at the start of stepping
+;       and sizes the timestep against that one value. The
+;       margin covers the stiffening and keeps the explicit
+;       scheme stable. Costs roughly sqrt(2) in runtime.
+        cm_max = 2.0 * m_e1
         sm_max = 0.5 * m_g2
 ;
 ;-----------------------------------------------------------

@@ -86,7 +86,10 @@ fix x i=1
 fix y j=1
 apply pressure 200000.0 i=2
 fix y j=2
-ini yvel -2.0e-7 j=2
+; Loading rate reduced 10x from -2.0e-7 after the mc=2.4 run
+; developed growing unbalanced-force oscillations from step
+; ~20,000. Step count raised 10x to reach the same strain.
+ini yvel -2.0e-8 j=2
 ;
 ; --- monitored quantities ---
 def path
@@ -119,7 +122,16 @@ his t_chi
 his t_r
 his t_hrd
 ;
-step 60000
+; --- large-strain mode ---
+; In small-strain mode FLAC samples mode 3 (cm_max) only at the
+; start of stepping, so the timestep is sized against the initial
+; stiffness. K = (1+e)p'/kappa grows as p' rises during shearing,
+; which is what destabilised the earlier run. Large-strain mode
+; re-calls mode 3 every ten steps so the timestep tracks the
+; stiffening. It is also the appropriate mode at 12% axial strain.
+set large
+;
+step 600000
 ;
 ; --- results ---
 ; History slots: 1 unbal, 2 path, 3 t_ea, 4 t_q, 5 t_p,
