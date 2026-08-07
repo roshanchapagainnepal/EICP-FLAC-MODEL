@@ -106,6 +106,13 @@ def path
     t_chi = m_chi(1,1)
     t_r   = m_r(1,1)
     t_hrd = m_r(1,1) * (m_pc(1,1) + m_pb(1,1))    ; R(pc + pb)
+;   --- diagnostics: size of the plastic corrector ---
+;   $zal and $zsb are ordinary FISH globals set inside the UDM
+;   return mapping, so they can be read from here. t_dp is the
+;   mean effective stress correction applied in one step. If it
+;   approaches p' itself (2.0e5 Pa) the corrector is overshooting.
+    t_lam = $zal                         ; plastic multiplier
+    t_dp  = $zsb * $zal                  ; mean stress correction, Pa
 end
 ;
 his nstep 20
@@ -121,6 +128,8 @@ his t_pb
 his t_chi
 his t_r
 his t_hrd
+his t_lam
+his t_dp
 ;
 ; --- large-strain mode ---
 ; In small-strain mode FLAC samples mode 3 (cm_max) only at the
@@ -136,7 +145,7 @@ step 600000
 ; --- results ---
 ; History slots: 1 unbal, 2 path, 3 t_ea, 4 t_q, 5 t_p,
 ;                6 t_ev, 7 t_e, 8 t_pc, 9 t_pb, 10 t_chi,
-;                11 t_r, 12 t_hrd
+;                11 t_r, 12 t_hrd, 13 t_lam, 14 t_dp
 ;
 ; Figure 10a equivalent: q versus axial strain
 plot his 4 vs 3 hold

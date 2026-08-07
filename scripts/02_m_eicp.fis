@@ -150,11 +150,25 @@ def m_eicp
                 if $zval < 0.0 then
                     $zval = 0.0
                 end_if
-                $zv1  = sqrt($zval)
-                $zal  = $zboa + $zv1
-                $zal1 = $zboa - $zv1
-                if abs($zal1) < abs($zal) then
-                    $zal = $zal1
+                $zv1 = sqrt($zval)
+;               Numerically stable selection of the smaller
+;               root. Forming $zboa - $zv1 directly cancels
+;               catastrophically whenever $zbc is small, and it
+;               is small on every step: sub-loading holds the
+;               stress on the yield surface, so F is only ever
+;               marginally positive. The product of the two
+;               roots is $zbc/$zba, so the small root can be
+;               formed as (c/a)/r_large with no subtraction of
+;               near-equal quantities.
+                if $zboa >= 0.0 then
+                    $zbig = $zboa + $zv1
+                else
+                    $zbig = $zboa - $zv1
+                end_if
+                if abs($zbig) > 1.0e-30 then
+                    $zal = ($zbc / $zba) / $zbig
+                else
+                    $zal = 0.0
                 end_if
             else
                 if abs($zbb) > 1.0e-20 then
