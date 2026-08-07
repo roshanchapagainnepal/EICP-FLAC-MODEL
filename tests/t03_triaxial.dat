@@ -80,16 +80,79 @@ print $eicp_err
 print m_r m_pb m_e1
 ;
 ; --- boundary conditions ---
-; axis of symmetry, base restrained, constant radial stress,
-; strain controlled axial compression on the top boundary
-fix x i=1
-fix y j=1
-apply pressure 200000.0 i=2
-fix y j=2
-; Loading rate reduced 10x from -2.0e-7 after the mc=2.4 run
-; developed growing unbalanced-force oscillations from step
-; ~20,000. Step count raised 10x to reach the same strain.
+; FULLY VELOCITY CONTROLLED, as in t01 and t02.
+;
+; The earlier version used "apply pressure i=2" for the radial
+; boundary, which left the gridpoints at i=2 free in x. Those two
+; free degrees of freedom, on a zone that sits on the symmetry
+; axis (r = 0 to 1, where the hoop strain u_r/r is singular),
+; formed a badly conditioned mass-spring system and diverged.
+; An elastic run with m_pc = 1e12 and mc = 0 still oscillated,
+; proving the source was the boundary condition, not the model.
+;
+; Fixing every gridpoint in both directions leaves ZERO free
+; degrees of freedom, so the divergence mechanism cannot exist.
+; The radial stress is now held at its target by the servo
+; function below, which drives xvel instead of applying a force.
+fix x
+fix y
+;
+; Axial loading rate. Reduced 10x from -2.0e-7 during earlier
+; instability debugging; retained because it is quasi-static.
 ini yvel -2.0e-8 j=2
+ini xvel 0.0 i=2
+;
+;-----------------------------------------------------------
+; RADIAL STRESS SERVO
+;
+; Holds sxx at the confining pressure by adjusting the radial
+; gridpoint velocity each step, instead of applying a force to
+; a free boundary. This keeps the model fully kinematic.
+;
+; GAIN. Over one step the radial strain increment produced by a
+; velocity vx is approximately vx (zone width 1 m, dt = 1 in
+; FLAC static mode), so the stress response is
+;     d(sxx) = m_e1 * vx
+; Nulling the error in a single step ("deadbeat") therefore
+; needs a gain of 1/m_e1. With e0 = 0.715 at p' = 200 kPa,
+;     K    = (1+e)p'/kappa = 1.143e8 Pa
+;     G    = 1.5 K (1-2nu)/(1+nu) = 9.67e7 Pa
+;     m_e1 = K + 4G/3 = 2.432e8 Pa
+; giving a deadbeat gain of 4.11e-9. A deadbeat servo chatters
+; in an explicit code, so $s_gain is set to 5.0e-10, about 0.12
+; of deadbeat: the error decays over roughly eight steps, which
+; is far faster than the loading changes it.
+;
+; Under-gaining is the safe direction. K = (1+e)p'/kappa GROWS
+; as p' rises during shearing, so the effective loop gain
+; (gain x m_e1) rises with it. Starting at 0.12 leaves room for
+; K to more than triple before the loop approaches instability.
+;
+; $s_vmax only catches genuine runaway. At 1.0e-6 it is 50x the
+; axial rate, so it will not bind during normal dilation. If the
+; servo ever saturates, t_sr will visibly depart from 200 kPa.
+;-----------------------------------------------------------
+;
+def servo_set
+    $s_target = -200000.0    ; sxx target, Pa (compression negative)
+    $s_gain   = 5.0e-10      ; ~0.12 of deadbeat 1/m_e1
+    $s_vmax   = 1.0e-6       ; runaway clamp on radial velocity
+end
+servo_set
+;
+def servo
+    while_stepping
+    $s_err = sxx(1,1) - $s_target
+    $s_vx  = -$s_gain * $s_err
+    if $s_vx > $s_vmax then
+        $s_vx = $s_vmax
+    end_if
+    if $s_vx < -$s_vmax then
+        $s_vx = -$s_vmax
+    end_if
+    xvel(2,1) = $s_vx
+    xvel(2,2) = $s_vx
+end
 ;
 ; --- monitored quantities ---
 def path
@@ -106,13 +169,6 @@ def path
     t_chi = m_chi(1,1)
     t_r   = m_r(1,1)
     t_hrd = m_r(1,1) * (m_pc(1,1) + m_pb(1,1))    ; R(pc + pb)
-;   --- diagnostics: size of the plastic corrector ---
-;   $zal and $zsb are ordinary FISH globals set inside the UDM
-;   return mapping, so they can be read from here. t_dp is the
-;   mean effective stress correction applied in one step. If it
-;   approaches p' itself (2.0e5 Pa) the corrector is overshooting.
-    t_lam = $zal                         ; plastic multiplier
-    t_dp  = $zsb * $zal                  ; mean stress correction, Pa
 end
 ;
 his nstep 20
@@ -128,8 +184,6 @@ his t_pb
 his t_chi
 his t_r
 his t_hrd
-his t_lam
-his t_dp
 ;
 ; --- large-strain mode ---
 ; In small-strain mode FLAC samples mode 3 (cm_max) only at the
@@ -145,7 +199,7 @@ step 600000
 ; --- results ---
 ; History slots: 1 unbal, 2 path, 3 t_ea, 4 t_q, 5 t_p,
 ;                6 t_ev, 7 t_e, 8 t_pc, 9 t_pb, 10 t_chi,
-;                11 t_r, 12 t_hrd, 13 t_lam, 14 t_dp
+;                11 t_r, 12 t_hrd
 ;
 ; Figure 10a equivalent: q versus axial strain
 plot his 4 vs 3 hold

@@ -211,24 +211,49 @@ def m_eicp
             zvisc = 0.0
         end_if
 ;
-;       --- accumulate over subzones (FISH Reference 2.8.6) ---
-        $m_vol_acc  = $m_vol_acc  + zde11 + zde22 + zde33
-        $m_depv_acc = $m_depv_acc + $zdlv
-        $m_depq_acc = $m_depq_acc + $zdlq
-        $m_dept_acc = $m_dept_acc + sqrt($zdlv*$zdlv + $zdlq*$zdlq)
-        $m_p_acc    = $m_p_acc    + $zpn
-        $m_q_acc    = $m_q_acc    + $zqn
+;       --- accumulate over subzones, VOLUME WEIGHTED ---
+;       FISH Reference 2.8.6 divides the accumulated total by
+;       zsub, which is an unweighted mean. That is exact only
+;       when the subzones have equal volume, which holds in
+;       plane strain but NOT in axisymmetry: there the subzone
+;       volume is zart*zxbar and varies with distance from the
+;       axis, badly so for a zone touching r = 0. The built-in
+;       C++ Cam-Clay weights by getSubZoneVolume() for exactly
+;       this reason, so the same weighting is used here.
+;       zxbar is only defined in CONFIG axisymmetry mode, so
+;       fall back to zart alone when it is not available.
+        $zvol = zart * zxbar
+        if $zvol <= 0.0 then
+            $zvol = zart
+        end_if
+        if $zvol <= 0.0 then
+            $zvol = 1.0
+        end_if
+;
+        $m_wt_acc   = $m_wt_acc   + $zvol
+        $m_vol_acc  = $m_vol_acc  + (zde11 + zde22 + zde33) * $zvol
+        $m_depv_acc = $m_depv_acc + $zdlv * $zvol
+        $m_depq_acc = $m_depq_acc + $zdlq * $zvol
+        $m_dept_acc = $m_dept_acc + sqrt($zdlv*$zdlv + $zdlq*$zdlq) * $zvol
+        $m_p_acc    = $m_p_acc    + $zpn * $zvol
+        $m_q_acc    = $m_q_acc    + $zqn * $zvol
         $m_pls_acc  = $m_pls_acc  + $zpls
 ;
 ;       --- last subzone: average, evolve state, reset ---
         if zsub > 0.0 then
 ;
-            $zdvol = $m_vol_acc  / zsub
-            $zdepv = $m_depv_acc / zsub
-            $zdepq = $m_depq_acc / zsub
-            $zdept = $m_dept_acc / zsub
-            m_p    = $m_p_acc    / zsub
-            m_q    = $m_q_acc    / zsub
+;           divide by the accumulated volume, not by zsub
+            $zwt = $m_wt_acc
+            if $zwt <= 0.0 then
+                $zwt = 1.0
+            end_if
+;
+            $zdvol = $m_vol_acc  / $zwt
+            $zdepv = $m_depv_acc / $zwt
+            $zdepq = $m_depq_acc / $zwt
+            $zdept = $m_dept_acc / $zwt
+            m_p    = $m_p_acc    / $zwt
+            m_q    = $m_q_acc    / $zwt
 ;
 ;           --- void ratio (zdvol is tension positive) ---
             m_e = m_e + (1.0 + m_e) * $zdvol
@@ -298,6 +323,7 @@ def m_eicp
             m_g2 = 2.0 * $zg
 ;
 ;           --- RESET accumulators (essential, see 2.8.6) ---
+            $m_wt_acc   = 0.0
             $m_vol_acc  = 0.0
             $m_depv_acc = 0.0
             $m_depq_acc = 0.0

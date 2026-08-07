@@ -51,6 +51,10 @@ def eicp_par
     $kb_dflt  = 1.0e9        ; default bulk modulus bound (Pa)
 ;
 ; --- subzone accumulators (reset every zsub cycle) ---
+;   All are volume weighted: each subzone contribution is
+;   multiplied by zart*zxbar, and $m_wt_acc accumulates the
+;   weights so the zone average is a true volume average.
+    $m_wt_acc   = 0.0        ; accumulated subzone volume
     $m_vol_acc  = 0.0        ; total volumetric strain
     $m_depv_acc = 0.0        ; plastic volumetric strain
     $m_depq_acc = 0.0        ; plastic deviatoric strain
