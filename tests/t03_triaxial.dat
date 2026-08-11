@@ -194,7 +194,7 @@ his t_hrd
 ; stiffening. It is also the appropriate mode at 12% axial strain.
 set large
 ;
-step 600000
+step 1200000
 ;
 ; --- results ---
 ; History slots: 1 unbal, 2 path, 3 t_ea, 4 t_q, 5 t_p,
