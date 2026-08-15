@@ -56,15 +56,21 @@ model m_eicp
 def set_case
     m_mc(1,1) = t_mc
     m_e(1,1)  = t_e0
+;   pc comes from $ini_pc0 in 01_parameters.fis so the whole
+;   sensitivity study is driven from a single line there.
+    m_pc(1,1) = $ini_pc0
 end
 ;
 ; --- CASE SELECTION: edit these two values ---
-set t_mc=2.4        ; calcite mass content in PERCENT
-set t_e0=0.715      ; initial void ratio
+set t_mc=0.0        ; calcite mass content in PERCENT
+set t_e0=0.723      ; initial void ratio
 ;
 ; --- properties ---
+; m_pc is NOT set here. It is assigned by set_case below from
+; $ini_pc0 in 01_parameters.fis, so the pc sensitivity study is
+; driven from one line in that file.
 prop dens 1700.0
-prop m_pc 450000.0  m_chi 1.0  m_kb 1.0e10
+prop m_chi 1.0  m_kb 1.0e10
 ;
 set_case
 ;

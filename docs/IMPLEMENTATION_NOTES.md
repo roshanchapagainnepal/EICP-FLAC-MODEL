@@ -120,6 +120,66 @@ print headings, not a compile error.
 modified Cam-Clay. Run the tests in order — t01 and t02 must pass before any
 discrepancy in t03 can be attributed to the MICP terms.
 
+## p_c Sensitivity Study
+
+p_c is an initial state variable, not a measured parameter, and Gai & Sánchez do
+not report it. It is therefore calibrated against Fig. 10a. It is set from a
+single line — `$ini_pc0` in `scripts/01_parameters.fis` — which `set_case` in
+`t03_triaxial.dat` pushes into `m_pc`.
+
+### Calibration targets (read from Fig. 10a, σ₃ = 200 kPa)
+
+| Quantity | Target |
+|---|---|
+| Untreated peak q | 410–420 kPa |
+| Strain at untreated peak | 4.5–5.0 % |
+| Untreated large-strain residual | 340–350 kPa |
+
+The residual is an independent confirmation of **M = 1.09**. Critical state
+requires q = M·p′ on the drained path p′ = σ₃ + q/3:
+
+    q = 1.09 (200 + q/3)  →  q = 218 / 0.6367 = 342 kPa
+
+This falls inside the observed 340–350 kPa band, so M needs no adjustment. The
+calibration is therefore about p_c alone — it sets the *peak*, while M already
+sets the *residual* correctly.
+
+### Trial values
+
+| Trial | p_c |
+|---|---|
+| A | 675 kPa |
+| B | 900 kPa |
+| C | 1125 kPa |
+
+### Independent check on the required p_c
+
+At the peak, with p_b = 0 (untreated) and R at its ceiling of 1, the stress must
+lie on the yield surface while following the drained path, giving
+
+    p0 = (q²/M² + p'²) / p'    with   p' = 200 + q/3   [kPa]
+
+| Target peak q | p′ at peak | Required p₀ |
+|---|---|---|
+| 400 kPa | 333 kPa | **737 kPa** |
+| 415 kPa | 338 kPa | **767 kPa** |
+| 420 kPa | 340 kPa | **777 kPa** |
+
+**Note a discrepancy:** this calculation gives 737 kPa for q = 400 kPa, not the
+810 kPa quoted when the study was set up. 810 kPa would follow if R were about
+0.91 rather than 1.0 at the peak. Worth resolving, since it shifts where the
+answer sits between trials A and B.
+
+Two effects push the *initial* p_c **above** these numbers:
+
+1. R < 1 at the peak in practice, and p₀ = R(p_c + p_b), so p_c = p₀/R.
+2. At peak the sample is on the dry side and dilating, so dε_v^p < 0 and p_c has
+   been *decreasing* from its initial value.
+
+**Expectation for Trial A:** 675 kPa is below even the most favourable estimate
+(737 kPa), so Trial A should **undershoot** the 410–420 kPa target. That is
+still a useful bracket point — it is the lower bound of the study.
+
 ## Still to verify
 
 - Velocity magnitudes and step counts in the test files are estimates. Watch

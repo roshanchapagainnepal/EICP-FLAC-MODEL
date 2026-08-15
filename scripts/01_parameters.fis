@@ -39,8 +39,21 @@ def eicp_par
 ; --- default initial state ---
     $ini_e    = 0.73         ; void ratio
     $ini_pc   = 150000.0     ; pre-consolidation pressure (Pa)
+;                              NOTE: $ini_pc is only a FALLBACK,
+;                              used by case 1 / case 3 if a zone
+;                              has no m_pc set. It is NOT the
+;                              value the tests run with - see
+;                              $ini_pc0 below.
     $ini_r    = 0.01         ; sub-loading ratio R
     $ini_chi  = 1.0          ; damage factor chi (1 = intact bonding)
+;
+; --- pc SENSITIVITY STUDY: the value the tests actually use ---
+;   pc is an initial state variable, not a measured parameter,
+;   and the paper does not report it. It is being calibrated
+;   against Fig. 10a. Trials: A = 675e3, B = 900e3, C = 1125e3.
+;   Change this ONE line to switch trials; t03 reads it via
+;   set_case, so the test file needs no edit.
+    $ini_pc0  = 900000.0     ; TRIAL B (Pa)
 ;
 ; --- numerical guards ---
     $p_min    = 1.0          ; floor on mean effective stress (Pa)
