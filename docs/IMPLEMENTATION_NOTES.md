@@ -180,6 +180,56 @@ Two effects push the *initial* p_c **above** these numbers:
 (737 kPa), so Trial A should **undershoot** the 410–420 kPa target. That is
 still a useful bracket point — it is the lower bound of the study.
 
+### Results
+
+Trial A was skipped. All runs: untreated (m_c = 0, e₀ = 0.723), σ₃ = 200 kPa,
+velocity −1.0e-7, 2 200 000 steps = 22 % axial strain.
+
+| Trial | p_c | Peak q | Strain at peak | Residual at 22 % |
+|---|---|---|---|---|
+| Target (Fig. 10a) | — | 410–420 kPa | 4.5–5.0 % | 340–350 kPa |
+| A (675 kPa) | — | skipped | — | — |
+| **B (900 kPa)** | 900 kPa | **460 kPa** | **4–5 %** | **390 kPa** |
+| D (800 kPa) | 800 kPa | pending | pending | pending |
+
+**Trial B verdict: shape correct, peak ~10 % high.** The strain at peak lands
+in the target window, so the *form* of the response is right and only the
+magnitude needs trimming.
+
+### η = 60 confirmed
+
+R rose from R₀ = 0.22 to ~0.96 by 7–8 % strain, against the paper's report of
+R → 1 at ~7 % (Fig. 14). **η = 60 from Table 1 is correct and needs no
+adjustment.** This matters: η governs the strain scale of the response while
+p_c governs its magnitude, so confirming η leaves p_c as the only free
+quantity. An earlier concern that η was wrong came from runs that had only
+reached 1.2 % strain — that was a drive-length artefact, not a model defect.
+
+### Calibrated p_c is between 675 and 900 kPa
+
+Independent check of the interpolation, using p₀ = (q²/M² + p′²)/p′ with
+p′ = 200 + q/3:
+
+| | q | p′ | required p₀ |
+|---|---|---|---|
+| Trial B achieved | 460 kPa | 353 kPa | 857 kPa |
+| Target | 415 kPa | 338 kPa | 767 kPa |
+
+Ratio 767/857 = 0.894, so p_c ≈ 900 × 0.894 = **805 kPa**. Next trial set to
+**800 kPa**, which this estimate supports independently of the linear
+interpolation between trials.
+
+### Note on the residual
+
+Trial B's 390 kPa at 22 % is above the 340–350 kPa target, but this is **not a
+separate calibration problem**. At q = 390 kPa, p′ = 330 kPa and q/p′ = 1.18,
+still above M = 1.09 — the sample has not yet reached critical state and is
+still softening toward it (p_c was still declining at 22 %, 920 → 710 kPa).
+The asymptote is M-controlled and independent of p_c: q_crit = 342 kPa. Do not
+attempt to correct the residual with p_c; lowering p_c to 800 kPa will reduce
+the 22 % residual as a side effect simply because there is less dilation to
+unwind.
+
 ## Still to verify
 
 - Velocity magnitudes and step counts in the test files are estimates. Watch
