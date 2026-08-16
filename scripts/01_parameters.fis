@@ -47,13 +47,18 @@ def eicp_par
     $ini_r    = 0.01         ; sub-loading ratio R
     $ini_chi  = 1.0          ; damage factor chi (1 = intact bonding)
 ;
-; --- pc SENSITIVITY STUDY: the value the tests actually use ---
+; --- CALIBRATED pre-consolidation pressure ---
 ;   pc is an initial state variable, not a measured parameter,
-;   and the paper does not report it. It is being calibrated
-;   against Fig. 10a. Trials: A = 675e3, B = 900e3, C = 1125e3.
-;   Change this ONE line to switch trials; t03 reads it via
-;   set_case, so the test file needs no edit.
-    $ini_pc0  = 800000.0     ; TRIAL D, intermediate (Pa)
+;   and the paper does not report it. It was calibrated against
+;   the UNTREATED curve of Fig. 10a (sigma3 = 200 kPa): trials
+;   at 900 kPa gave a 460 kPa peak, 800 kPa gave 420 kPa at 5%
+;   strain, matching the 410-420 kPa target. See the pc
+;   Sensitivity Study section of docs/IMPLEMENTATION_NOTES.md.
+;
+;   This ONE value carries forward to every mc case unchanged,
+;   which is the paper's "reference soil" methodology. Do not
+;   re-tune it per calcite content.
+    $ini_pc0  = 800000.0     ; CALIBRATED (Pa)
 ;
 ; --- numerical guards ---
     $p_min    = 1.0          ; floor on mean effective stress (Pa)

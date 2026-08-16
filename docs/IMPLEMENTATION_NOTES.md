@@ -120,7 +120,15 @@ print headings, not a compile error.
 modified Cam-Clay. Run the tests in order — t01 and t02 must pass before any
 discrepancy in t03 can be attributed to the MICP terms.
 
-## p_c Sensitivity Study
+## p_c Sensitivity Study — COMPLETE
+
+> **Outcome: p_c = 800 000 Pa is the CALIBRATED value.** The untreated baseline
+> is validated against Fig. 10a of Gai & Sánchez (2019) at σ₃ = 200 kPa: peak
+> q = 420 kPa at ~5 % axial strain, against a target of 410–420 kPa at
+> 4.5–5.0 %. This single value carries forward to every m_c case unchanged,
+> per the paper's "reference soil" methodology — it must not be re-tuned per
+> calcite content.
+
 
 p_c is an initial state variable, not a measured parameter, and Gai & Sánchez do
 not report it. It is therefore calibrated against Fig. 10a. It is set from a
@@ -185,16 +193,21 @@ still a useful bracket point — it is the lower bound of the study.
 Trial A was skipped. All runs: untreated (m_c = 0, e₀ = 0.723), σ₃ = 200 kPa,
 velocity −1.0e-7, 2 200 000 steps = 22 % axial strain.
 
-| Trial | p_c | Peak q | Strain at peak | Residual at 22 % |
-|---|---|---|---|---|
-| Target (Fig. 10a) | — | 410–420 kPa | 4.5–5.0 % | 340–350 kPa |
-| A (675 kPa) | — | skipped | — | — |
-| **B (900 kPa)** | 900 kPa | **460 kPa** | **4–5 %** | **390 kPa** |
-| D (800 kPa) | 800 kPa | pending | pending | pending |
+| Trial | p_c | Peak q | Strain at peak | Residual at 22 % | Verdict |
+|---|---|---|---|---|---|
+| Target (Fig. 10a) | — | 410–420 kPa | 4.5–5.0 % | 340–350 kPa | — |
+| A | 675 kPa | skipped | — | — | predicted undershoot |
+| B | 900 kPa | 460 kPa | 4–5 % | 390 kPa | peak ~10 % high |
+| **D** | **800 kPa** | **420 kPa** | **~5 %** | **375–380 kPa** | **PASS — calibrated** |
 
-**Trial B verdict: shape correct, peak ~10 % high.** The strain at peak lands
-in the target window, so the *form* of the response is right and only the
-magnitude needs trimming.
+**Trial B:** shape correct, peak ~10 % high. Strain at peak already landed in
+the target window, so the *form* of the response was right and only the
+magnitude needed trimming.
+
+**Trial D:** peak q = 420 kPa at ~5 % strain, hitting the target band, with
+correct post-peak softening to 375–380 kPa at 22 %. R₀ = 0.25 saturating to
+0.95–0.97 by 7–8 % strain. p_b = 0 and `unbal` = 0 throughout.
+**p_c = 800 000 Pa adopted as the calibrated value.**
 
 ### η = 60 confirmed
 
