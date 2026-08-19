@@ -243,11 +243,102 @@ attempt to correct the residual with p_c; lowering p_c to 800 kPa will reduce
 the 22 % residual as a side effect simply because there is less dilation to
 unwind.
 
+## m_c = 2.4 % Validation — treated sand
+
+σ₃ = 200 kPa, e₀ = 0.715, p_c = 800 kPa (calibrated on untreated data, **not**
+re-tuned), a = 200 kPa and μ = 6.5 taken unchanged from Table 2. Velocity
+−1.0e-7, 2 200 000 steps = 22 % axial strain.
+
+**This run is a one-calibration-parameter prediction.** p_c was calibrated from
+the untreated data; every parameter specific to the cementation (a, μ) is the
+published Table 2 value, unchanged. Nothing was fitted to the treated response.
+
+| Quantity | Model | Paper (Fig. 10) | |
+|---|---|---|---|
+| Peak q | 570 kPa | ~680 kPa | **−16 %** |
+| Strain at peak | 3.4–3.5 % | ~2–3 % | close |
+| Residual at 22 % | 375 kPa | — | — |
+| p_b decay | 480 → 95 kPa (−80 %) | — | mechanism active |
+| p_c decay | 800 → 580 kPa | — | dilation correct |
+
+### Qualitative validation: PASS
+
+All five signature behaviours of MICP-treated sand reproduce correctly:
+
+1. treated curve above untreated throughout
+2. higher peak than untreated (570 vs 420 kPa)
+3. earlier peak than untreated (3.4 % vs 5 %)
+4. more post-peak softening than untreated
+5. p_b degrades by 80 %, driving that extra softening
+
+`unbal` = 0 throughout; R evolution matches the untreated case.
+
+**Qualitative consistency observation — not a validation.** Both curves
+approach a similar residual at 22 % strain: 375 kPa treated against
+375–380 kPa untreated. This is *consistent with* the paper's remark that a
+treated specimen's residual strength tends toward the untreated one at large
+deformation, but it cannot be claimed as independent validation, for two
+reasons. First, p_b is still ~95 000 Pa at 22 % — the bonding has degraded by
+80 % but is not fully removed, so the two materials are not yet equivalent.
+Second, Fig. 10 presents experimental data only to 12 % strain, so a
+comparison at 22 % lies beyond the direct experimental range.
+
+### Quantitative finding: 16 % underprediction of peak strength
+
+**Recorded as a finding, not corrected by adjusting parameters.** `a` = 200 kPa
+is the published Table 2 value; re-tuning it to close the gap would convert an
+independent prediction into a curve fit and destroy the validation's value.
+
+**The corresponding gap in `a` cannot be inferred directly from the q
+shortfall.** R, p_c, χ, the dilation response and the stress path all evolve in
+a coupled way during the test, so there is no valid closed-form
+back-calculation from a peak-strength difference to a parameter value. Any
+earlier estimate along those lines should be disregarded. Determining what
+value of `a` would close the gap is a job for the sensitivity study listed
+below, run case by case — not for algebra.
+
+### Context for the discrepancy
+
+- Gai & Sánchez state their aim was to capture the main tendencies rather than
+  precisely reproduce the experiments, and they deliberately used one
+  "reference soil" parameter set across all tests rather than fitting each.
+- p_c is not reported in the paper and had to be calibrated here, so one
+  degree of freedom was introduced that the original authors set differently.
+- The paper integrates the model with Sloan et al. (1987) sub-stepping at the
+  "point integration level"; this implementation uses FLAC's explicit
+  single-step return mapping with lagged hardening. This is a **plausible
+  contributing factor, not a confirmed explanation.** Establishing it as
+  causal would require a numerical convergence check — re-running with
+  progressively smaller strain increments per step and demonstrating that the
+  peak converges toward the paper's value. Until that is done, the integration
+  scheme should be cited as a candidate factor only.
+
 ## Still to verify
 
-- Velocity magnitudes and step counts in the test files are estimates. Watch
-  the `unbal` history and the axial strain, and tune so that loading stays
-  quasi-static and reaches ~12 % axial strain in t03.
-- `t03` currently uses p_c = 450 kPa for all cases. The paper does not state
-  p_c directly; this value was chosen so that R(p_c+p_b) reaches roughly
-  930 kPa as R → 1, consistent with the reported peak strengths.
+- **Next runs.** The remaining Table 4 cases are m_c = 1.2 % (e₀ = 0.718) and
+  m_c = 5.3 % (e₀ = 0.709), which complete the Fig. 10 comparison. The paper
+  notes shear-band localisation in the 5.3 % test and states its modelling is
+  out of scope, so poorer agreement is expected there and is not a defect.
+- **μ parametric study (Figs. 13 and 14).** m_c = 2.4 %, σ₃ = 100 kPa, varying
+  `$mu_p` only. Use **μ = 1.5, 4.5, 8.5, 12.5**.
+
+  **Discrepancy in the paper:** Table 5 lists the fourth case as μ = 16.5, but
+  Figs. 13 and 14 are plotted for μ = 12.5. Use 12.5 to reproduce the plotted
+  figures, and state this inconsistency explicitly in the write-up rather than
+  silently picking one.
+
+- **Confining pressure series (Fig. 15, Table 6).** Note that each confinement
+  has its own e₀ *and* its own m_c — this is not a constant-cementation
+  series, and the samples at higher confinement were incidentally prepared
+  with more calcite, which the paper acknowledges may influence the trend:
+
+  | σ₃ | e₀ | m_c |
+  |---|---|---|
+  | 100 kPa | 0.723 | 0.9 % |
+  | 200 kPa | 0.718 | 1.2 % |
+  | 400 kPa | 0.715 | 1.4 % |
+
+- **`a` sensitivity study.** Since the required `a` cannot be back-calculated
+  analytically (see above), running the model at a = 200 / 300 / 400 kPa is
+  the only valid way to establish what value would close the gap. Report it as
+  a documented sensitivity, keeping a = 200 kPa as the validation case.
