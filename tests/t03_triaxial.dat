@@ -62,8 +62,8 @@ def set_case
 end
 ;
 ; --- CASE SELECTION: edit these two values ---
-set t_mc=1.2        ; calcite mass content in PERCENT
-set t_e0=0.718      ; initial void ratio
+set t_mc=5.3        ; calcite mass content in PERCENT
+set t_e0=0.709      ; initial void ratio
 ;
 ; --- properties ---
 ; m_pc is NOT set here. It is assigned by set_case below from
