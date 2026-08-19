@@ -313,6 +313,57 @@ below, run case by case — not for algebra.
   peak converges toward the paper's value. Until that is done, the integration
   scheme should be cited as a candidate factor only.
 
+## Figure 10 Validation Set — COMPLETE
+
+All four Table 4 cases at σ₃ = 200 kPa, p_c = 800 kPa (calibrated once on the
+untreated case and **never re-tuned**), a = 200 kPa and μ = 6.5 unchanged from
+Table 2. Velocity −1.0e-7, 2 200 000 steps = 22 % axial strain.
+
+| m_c | e₀ | Model peak q | Paper peak q | Ratio | Strain at peak |
+|---|---|---|---|---|---|
+| 0 % | 0.723 | 420 kPa | 420 kPa | **1.00** | 5.0 % |
+| 1.2 % | 0.718 | 490 kPa | ~510 kPa | **0.96** | 4.0 % |
+| 2.4 % | 0.715 | 570 kPa | ~680 kPa | **0.84** | 3.4 % |
+| 5.3 % | 0.709 | 745 kPa | ~825 kPa | **0.90** | 3.0 % |
+
+m_c = 0 % is the calibration point, so its ratio of 1.00 is by construction and
+is not an independent result. The other three are predictions.
+
+Supporting state variables, m_c = 5.3 %: p_b 1060 → 190 kPa (82 % degradation),
+χ 0.99 → 0.18–0.19, R 0.108 → 0.95–0.97 by 7–8 % strain, residual 371 kPa at
+22 %, `unbal` = 0 throughout.
+
+### Qualitative trends: all correct
+
+Across the full set, peak strength rises with m_c, the peak occurs
+progressively earlier (5.0 → 4.0 → 3.4 → 3.0 %), post-peak softening becomes
+more pronounced, and all four residuals converge toward a similar value
+(370–380 kPa). Every trend the paper reports is reproduced.
+
+### Finding: the model/paper ratio is non-monotone
+
+The ratio falls from 0.96 to 0.84 and then partially recovers to 0.90. **This
+is inconsistent with a simple "a is too small" explanation**, which would
+predict a monotone decline as the p_b contribution grows with m_c. The pattern
+instead suggests coupled interaction between p_b, p_c decay and χ degradation
+at high cementation.
+
+Three caveats belong with this finding and should be stated alongside it:
+
+1. **Reading precision.** The paper's peaks were read from a plotted figure.
+   An uncertainty of a few per cent in those readings is comparable to the
+   0.84 → 0.90 recovery itself, so the non-monotonicity is suggestive rather
+   than established.
+2. **The m_c = 5.3 % case is compromised.** Gai & Sánchez report localised
+   shear-band behaviour in that specimen and place its modelling out of scope.
+   Their own model deviates there. The experimental value is affected by
+   localisation the model does not represent, so the 0.90 ratio is the least
+   reliable of the four.
+3. **No mechanism is inferred here.** As established for the m_c = 2.4 % case,
+   the coupled evolution of R, p_c, χ, dilation and the stress path means no
+   parameter value can be back-calculated from peak-strength ratios. The `a`
+   and μ sensitivity studies are the valid route to attribution.
+
 ## Still to verify
 
 - **Next runs.** The remaining Table 4 cases are m_c = 1.2 % (e₀ = 0.718) and

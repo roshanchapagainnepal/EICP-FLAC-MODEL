@@ -34,7 +34,14 @@ def eicp_par
 ;   fraction (0.024) gives pb = 4.8 kPa and the cementation
 ;   would have no practical effect on the response.
     $a_pa     = 200000.0     ; bonding scaling constant a  (200 kPa)
-    $mu_p     = 6.5          ; cementation damage rate, mu
+;   mu SENSITIVITY STUDY (paper Figs. 13 and 14), run at
+;   mc = 2.4 % and sigma3 = 100 kPa. Trials: 1.5, 4.5, 8.5, 12.5.
+;   The published calibration value is 6.5 (Table 2) - restore it
+;   after the study.
+;   NOTE: paper Table 5 lists the fourth case as mu = 16.5, but
+;   Figs. 13 and 14 are plotted for mu = 12.5. Use 12.5 to match
+;   the plotted figures and report the inconsistency.
+    $mu_p     = 1.5          ; mu TRIAL 1 (calibrated value 6.5)
 ;
 ; --- default initial state ---
     $ini_e    = 0.73         ; void ratio
