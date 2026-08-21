@@ -41,7 +41,7 @@ def eicp_par
 ;   NOTE: paper Table 5 lists the fourth case as mu = 16.5, but
 ;   Figs. 13 and 14 are plotted for mu = 12.5. Use 12.5 to match
 ;   the plotted figures and report the inconsistency.
-    $mu_p     = 4.5          ; mu TRIAL 2 (calibrated value 6.5)
+    $mu_p     = 8.5          ; mu TRIAL 3 (calibrated value 6.5)
 ;
 ; --- default initial state ---
     $ini_e    = 0.73         ; void ratio
