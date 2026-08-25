@@ -4,6 +4,33 @@ Implementation of Gai & Sánchez (2019), *An elastoplastic mechanical constituti
 model for microbially mediated cemented soils*, Acta Geotechnica 14:709–726,
 as a FISH user-defined model (UDM) for FLAC 8.0.
 
+## Programme status: COMPLETE
+
+All four validation and sensitivity studies are finished. **16 FLAC runs.**
+
+| Study | Cases | Status |
+|---|---|---|
+| Regression | t01 elastic, t02 Cam-Clay reduction | PASS |
+| Fig. 10 validation | m_c = 0, 1.2, 2.4, 5.3 % | COMPLETE |
+| p_c calibration | 900, 800 kPa (675 skipped) | COMPLETE — p_c = 800 kPa |
+| μ sensitivity | μ = 1.5, 4.5, 8.5, 12.5 | COMPLETE |
+| `a` sensitivity | a = 200, 300, 400 kPa | COMPLETE |
+| Table 6 confinement | σ₃ = 100, 200, 400 kPa | COMPLETE |
+
+**Headline result.** The model reproduces every qualitative behaviour the paper
+reports — strength and stiffness increasing with calcite content, earlier and
+sharper peaks, bond degradation driving post-peak softening, residuals
+converging toward the untreated host sand, and the dilative-to-compressive
+transition with confinement. Quantitatively it underpredicts peak strength by
+up to 16 % using published parameters, with p_c calibrated once against the
+untreated curve and never re-tuned.
+
+**Parameter provenance.** κ, λ, M, D_s, ν, η, a and μ are the published values
+from Tables 1 and 2, unchanged. Only p_c was calibrated, because the paper does
+not report it. The `a` and μ sensitivity studies are reported sensitivities,
+not recalibrations — both parameters are restored to their published values in
+`01_parameters.fis`.
+
 ## How to run
 
 ```
@@ -480,25 +507,74 @@ parameter value can be back-calculated from peak-strength comparisons. The
 coupling is not a theoretical caveat — it is visible in the data, in two
 independent parameter directions, with a clean control.
 
+## Table 6 Confinement Series — COMPLETE
+
+Reproduces Fig. 15. p_c = 800 kPa, a = 200 kPa, μ = 6.5, all published or
+previously calibrated values, unchanged. Velocity −1.0e-7, 2 200 000 steps
+= 22 % axial strain. `unbal` = 0 throughout all three trials.
+
+| σ₃ | e₀ | m_c | R₀ | Peak / plateau q | q_crit | p_c at 22 % | Side |
+|---|---|---|---|---|---|---|---|
+| 100 kPa | 0.723 | 0.9 % | 0.10 | 405 kPa at 3.0–3.5 % | 171 kPa | 390 kPa ↓ | **dry** |
+| 200 kPa | 0.718 | 1.2 % | 0.192 | 490 kPa at 4.0 % | 342 kPa | 632 kPa ↓ | **dry** |
+| 400 kPa | 0.715 | 1.4 % | 0.370 | ~590 kPa, still rising | 684 kPa | 1040 kPa ↑ | **wet** |
+
+χ fell to 0.16 / 0.18 / 0.22 and p_b lost 83 / 81 / 78 % across the three runs.
+
+**Consistency check.** The σ₃ = 200 kPa trial reproduced the Fig. 10 m_c = 1.2 %
+run exactly — 490 kPa at 4.0 % strain — confirming no parameter drift across
+the μ and `a` sensitivity studies that ran between them.
+
+### Finding: the model reproduces the wet/dry side transition
+
+At 100 and 200 kPa the specimen sits on the **dry** side of critical state: it
+dilates, reaches a peak, and softens. At 400 kPa it sits on the **wet** side:
+it compresses and hardens continuously with no peak. This is exactly the
+transition Fig. 15 reports, and it emerges from the model rather than being
+imposed.
+
+The mechanism is R₀ = σ₃/(p_c + p_b). Raising σ₃ from 100 to 400 kPa while
+p_b barely changes (m_c only moves 0.9 → 1.4 %) drives R₀ from 0.10 to 0.370,
+so the stress point starts far closer to the surface apex and never travels
+onto the dry side.
+
+### The clearest signature: the direction of p_c
+
+**p_c falls at 100 and 200 kPa but rises at 400 kPa.**
+
+Sign of dε_v^p is set by ∂F/∂p = M²(2p′ − p₀). On the dry side p′ < p₀/2, so
+the term is negative, the specimen dilates and p_c erodes. On the wet side
+p′ > p₀/2, the term is positive, the specimen compacts and p_c hardens. The
+p_c history is therefore a direct readout of which side the specimen is on —
+a cleaner diagnostic than the volumetric strain curve, which mixes elastic and
+plastic contributions.
+
+### Caveats
+
+1. **22 % strain is not sufficient at 400 kPa.** q_crit = 684 kPa and the
+   model is at ~590 kPa still rising, so this case has not reached critical
+   state. The 100 kPa case is also incompletely converged (230 kPa residual
+   against q_crit = 171 kPa). **Residuals are not comparable across the series
+   at a fixed 22 % strain**, and the write-up should say so rather than
+   tabulating them as though they were.
+2. **This is not a controlled confinement study.** Table 6 varies σ₃, e₀ *and*
+   m_c simultaneously, and the paper notes the higher-confinement samples were
+   incidentally prepared with more calcite. The series tests whether the model
+   tracks the combined experimental conditions — which is the right validation
+   question — but it cannot isolate a confining-pressure effect. Isolating it
+   would need a synthetic series holding e₀ and m_c fixed, which has no
+   experimental counterpart.
+
 ## Still to verify
 
-- **Next runs.** The remaining Table 4 cases are m_c = 1.2 % (e₀ = 0.718) and
-  m_c = 5.3 % (e₀ = 0.709), which complete the Fig. 10 comparison. The paper
-  notes shear-band localisation in the 5.3 % test and states its modelling is
-  out of scope, so poorer agreement is expected there and is not a defect.
-- ~~μ parametric study (Figs. 13 and 14)~~ — **COMPLETE**, see the μ
-  Sensitivity Study section above.
+Nothing remains for the validation programme. Optional extensions:
 
-- **Confining pressure series (Fig. 15, Table 6).** Note that each confinement
-  has its own e₀ *and* its own m_c — this is not a constant-cementation
-  series, and the samples at higher confinement were incidentally prepared
-  with more calcite, which the paper acknowledges may influence the trend:
-
-  | σ₃ | e₀ | m_c |
-  |---|---|---|
-  | 100 kPa | 0.723 | 0.9 % |
-  | 200 kPa | 0.718 | 1.2 % |
-  | 400 kPa | 0.715 | 1.4 % |
-
-- ~~`a` sensitivity study~~ — **COMPLETE**, see the `a` Sensitivity Study
-  section above. Effective a ≈ 320–340 kPa; published 200 kPa retained.
+- **Table 7 loading paths** (Figs. 17, 18): radial extension and constant-p′
+  tests at σ₃ = 100 kPa, m_c = 1.25 %. These need a modified servo — constant
+  p′ requires driving both stress components together — so they are a
+  meaningful extension rather than a parameter change.
+- **Numerical convergence check.** Re-running with smaller strain increments
+  per step would establish whether the explicit single-step return mapping
+  contributes to the 16 % peak shortfall. Until done, the integration scheme
+  remains a candidate factor only, not a confirmed explanation.
+- **Longer runs at 100 and 400 kPa** if comparable residuals are wanted.
