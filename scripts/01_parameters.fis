@@ -47,7 +47,7 @@ def eicp_par
 ;   Running the sensitivity is therefore the only valid route.
 ;   a = 200 kPa remains the validation case; these trials are a
 ;   documented sensitivity, NOT a recalibration.
-    $a_pa     = 300000.0     ; a TRIAL 1 (published value 200000.0)
+    $a_pa     = 400000.0     ; a TRIAL 2 (published value 200000.0)
 ;   mu is the published Table 2 value and is RESTORED here.
 ;   The mu sensitivity study (paper Figs. 13 and 14; trials
 ;   1.5 / 4.5 / 8.5 / 12.5 at mc = 2.4 %, sigma3 = 100 kPa) is
