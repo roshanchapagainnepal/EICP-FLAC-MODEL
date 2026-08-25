@@ -41,7 +41,7 @@
 config axi
 grid 1 1
 title
-Test 3 - drained triaxial compression at 100 kPa (mu study)
+Test 3 - drained triaxial compression at 200 kPa
 ;
 ; --- model ---
 call ..\scripts\01_parameters.fis
@@ -74,16 +74,20 @@ prop m_chi 1.0  m_kb 1.0e10
 ;
 set_case
 ;
-; --- initial stress state: isotropic at 100 kPa ---
-; mu sensitivity study (paper Figs. 13 and 14) is run at
-; sigma3 = 100 kPa, NOT the 200 kPa used for the Fig. 10 set.
-ini sxx -100000.0 syy -100000.0 szz -100000.0
+; --- initial stress state: isotropic at 200 kPa ---
+; NOTE: sigma3 is encoded in TWO places - here and in the servo
+; target $s_target below. Change BOTH together or the servo will
+; drive the radial stress back to the old value and the run will
+; look stable while being silently wrong.
+; The mu study (Figs. 13 and 14) uses 100 kPa; the Fig. 10
+; validation set uses 200 kPa, which is restored here.
+ini sxx -200000.0 syy -200000.0 szz -200000.0
 ;
 ; --- consistent sub-loading initialisation ---
 ; computes R0 from the initial stress state and pc
 ini_eicp_r
 ;
-; --- CHECK THIS: 1.0 means pc is too small for 100 kPa ---
+; --- CHECK THIS: 1.0 means pc is too small for sigma3 ---
 print $eicp_err
 print m_r m_pb m_e1
 ;
@@ -122,21 +126,21 @@ ini xvel 0.0 i=2
 ; FLAC static mode), so the stress response is
 ;     d(sxx) = m_e1 * vx
 ; Nulling the error in a single step ("deadbeat") therefore
-; needs a gain of 1/m_e1. With e0 = 0.715 at p' = 100 kPa,
-;     K    = (1+e)p'/kappa = 5.72e7 Pa
-;     G    = 1.5 K (1-2nu)/(1+nu) = 4.84e7 Pa
-;     m_e1 = K + 4G/3 = 1.217e8 Pa
-; giving a deadbeat gain of 8.22e-9. A deadbeat servo chatters
-; in an explicit code, so $s_gain is left at 5.0e-10, about 0.06
-; of deadbeat at this confinement: the error decays over roughly
-; sixteen steps, still far faster than the loading changes it.
+; needs a gain of 1/m_e1. With e0 = 0.715 at p' = 200 kPa,
+;     K    = (1+e)p'/kappa = 1.143e8 Pa
+;     G    = 1.5 K (1-2nu)/(1+nu) = 9.67e7 Pa
+;     m_e1 = K + 4G/3 = 2.432e8 Pa
+; giving a deadbeat gain of 4.11e-9. A deadbeat servo chatters
+; in an explicit code, so $s_gain is set to 5.0e-10, about 0.12
+; of deadbeat: the error decays over roughly eight steps, which
+; is far faster than the loading changes it.
 ;
-; NOTE: the gain was originally sized at sigma3 = 200 kPa, where
-; it was 0.12 of deadbeat. Halving the confinement halves K and
-; so halves m_e1, which HALVES the effective loop gain. That is
+; The SAME gain is used at other confinements without retuning.
+; K = (1+e)p'/kappa scales with p', so at sigma3 = 100 kPa the
+; effective loop gain HALVES to about 0.06 of deadbeat. That is
 ; the safe direction - under-gaining costs a little tracking
-; accuracy, over-gaining oscillates. Steady-state tracking error
-; here is about 41 Pa against a 100 kPa target, i.e. 0.04 %.
+; accuracy, over-gaining oscillates. Tracking error stayed near
+; 0.04 % of target at both 100 and 200 kPa.
 ;
 ; Under-gaining is the safe direction. K = (1+e)p'/kappa GROWS
 ; as p' rises during shearing, so the effective loop gain
@@ -145,11 +149,11 @@ ini xvel 0.0 i=2
 ;
 ; $s_vmax only catches genuine runaway. At 1.0e-6 it is 50x the
 ; axial rate, so it will not bind during normal dilation. If the
-; servo ever saturates, t_sr will visibly depart from 100 kPa.
+; servo ever saturates, t_sr will visibly depart from sigma3.
 ;-----------------------------------------------------------
 ;
 def servo_set
-    $s_target = -100000.0    ; sxx target, Pa (compression negative)
+    $s_target = -200000.0    ; sxx target, Pa (compression negative)
     $s_gain   = 5.0e-10      ; ~0.12 of deadbeat 1/m_e1
     $s_vmax   = 1.0e-6       ; runaway clamp on radial velocity
 end

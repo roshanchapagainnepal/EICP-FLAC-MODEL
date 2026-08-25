@@ -33,15 +33,27 @@ def eicp_par
 ;   magnitudes plotted in paper Figure 12b. Entering mc as a
 ;   fraction (0.024) gives pb = 4.8 kPa and the cementation
 ;   would have no practical effect on the response.
-    $a_pa     = 200000.0     ; bonding scaling constant a  (200 kPa)
-;   mu SENSITIVITY STUDY (paper Figs. 13 and 14), run at
-;   mc = 2.4 % and sigma3 = 100 kPa. Trials: 1.5, 4.5, 8.5, 12.5.
-;   The published calibration value is 6.5 (Table 2) - restore it
-;   after the study.
-;   NOTE: paper Table 5 lists the fourth case as mu = 16.5, but
-;   Figs. 13 and 14 are plotted for mu = 12.5. Use 12.5 to match
-;   the plotted figures and report the inconsistency.
-    $mu_p     = 12.5         ; mu TRIAL 4, final (calibrated value 6.5)
+;   a SENSITIVITY STUDY, mc = 2.4 %, sigma3 = 200 kPa.
+;   Trials: 200 / 300 / 400 kPa. The PUBLISHED Table 2 value is
+;   200 kPa - RESTORE IT after the study. Every Figure 10
+;   validation result depends on a = 200 kPa; leaving a trial
+;   value here would silently invalidate them.
+;
+;   Purpose: the Fig. 10 set underpredicts peak strength by up
+;   to 16 %, and the required value of a cannot be back-
+;   calculated from peak-strength ratios because R, pc, chi,
+;   dilation and the stress path evolve in a coupled way (see
+;   the mu study, finding 3, for that coupling in the data).
+;   Running the sensitivity is therefore the only valid route.
+;   a = 200 kPa remains the validation case; these trials are a
+;   documented sensitivity, NOT a recalibration.
+    $a_pa     = 300000.0     ; a TRIAL 1 (published value 200000.0)
+;   mu is the published Table 2 value and is RESTORED here.
+;   The mu sensitivity study (paper Figs. 13 and 14; trials
+;   1.5 / 4.5 / 8.5 / 12.5 at mc = 2.4 %, sigma3 = 100 kPa) is
+;   COMPLETE - results in docs/IMPLEMENTATION_NOTES.md.
+;   Do not leave a trial value in this line.
+    $mu_p     = 6.5          ; cementation damage rate, mu
 ;
 ; --- default initial state ---
     $ini_e    = 0.73         ; void ratio

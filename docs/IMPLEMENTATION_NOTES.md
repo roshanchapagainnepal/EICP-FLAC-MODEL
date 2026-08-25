@@ -364,19 +364,77 @@ Three caveats belong with this finding and should be stated alongside it:
    parameter value can be back-calculated from peak-strength ratios. The `a`
    and μ sensitivity studies are the valid route to attribution.
 
+## μ Sensitivity Study — COMPLETE
+
+Reproduces Gai & Sánchez Figs. 13 and 14. m_c = 2.4 %, e₀ = 0.715,
+**σ₃ = 100 kPa** (not the 200 kPa of the Fig. 10 set), p_c = 800 kPa,
+a = 200 kPa. Velocity −1.0e-7, 2 200 000 steps = 22 % axial strain. Only
+`$mu_p` varied. `unbal` = 0 throughout all four trials.
+
+| μ | Peak q | Strain at peak | χ at 22 % | p_b at 22 % | p_c at 22 % |
+|---|---|---|---|---|---|
+| 1.5 | 527 kPa | 3.0–3.2 % | 0.65 | 310 kPa | 163 kPa |
+| 4.5 | 501 kPa | 2.8–3.0 % | 0.28 | 135 kPa | 320 kPa |
+| 8.5 | 480 kPa | 2.5 % | 0.09 | 50 kPa | 362 kPa |
+| 12.5 | 470 kPa | 2.6 % | 0.03 | 13 kPa | 388 kPa |
+
+### Discrepancy in the paper: μ = 16.5 vs 12.5
+
+**Table 5 lists the fourth case as μ = 16.5, but Figs. 13 and 14 are plotted
+for μ = 12.5.** These trials used **12.5** so the results are comparable with
+the plotted figures. This inconsistency is in the published paper, not in this
+implementation, and should be stated explicitly in the write-up rather than
+silently resolved.
+
+### Findings
+
+1. **Peak strength is insensitive to μ.** An 8.3-fold increase in μ moves the
+   peak only 527 → 470 kPa, an 11 % range. This is consistent with the paper's
+   own statement that μ has practically no effect on initial stiffness and
+   only a modest effect on peak strength.
+
+2. **χ and p_b are highly sensitive, and nonlinearly so.** The same 8.3-fold
+   change in μ produces a 22-fold change in χ (0.65 → 0.03) and drives p_b
+   from 310 kPa to 13 kPa. The damage law amplifies rather than tracks its
+   input, which follows from the exponential integration χ ← χ·exp(−μ dε_q^p).
+
+3. **p_c rises monotonically with μ — the compensation mechanism.** p_c at
+   22 % goes 163 → 320 → 362 → 388 kPa, i.e. *opposite* in direction to p_b.
+   Faster bond degradation shrinks p_b, which shrinks the total surface
+   p₀ = R(p_c + p_b), which moves the stress point relatively less far onto
+   the dry side, so the sample dilates less and p_c is eroded less. **The two
+   hardening parameters partially compensate**, and this is what makes peak
+   strength so much less sensitive to μ than χ is (finding 1). μ does not act
+   on p_b alone; it reaches p_c indirectly through the dilation response.
+
+   This is the same coupling that makes parameter values impossible to
+   back-calculate from peak-strength comparisons — here it is visible directly
+   in the data rather than argued in the abstract.
+
+4. **Post-peak softening plateaus above μ ≈ 4.5.** The post-peak drop is
+   263 / 250 / 255 kPa for μ = 4.5 / 8.5 / 12.5 — essentially flat. Softening
+   is bounded below by the untreated critical-state residual: once the bonding
+   is substantially gone, the material cannot soften past the host sand, so
+   further increases in μ have nothing left to remove.
+
+5. **μ = 12.5 approaches complete debonding.** p_b = 13 kPa at 22 % strain is
+   97 % degradation, so the treated response has effectively collapsed onto
+   the untreated one at large strain.
+
+### Housekeeping after the study
+
+`$mu_p` restored to **6.5** and σ₃ restored to **200 kPa** in both places
+(`ini sxx/syy/szz` and the servo target `$s_target`). Every Fig. 10 result
+depends on those values.
+
 ## Still to verify
 
 - **Next runs.** The remaining Table 4 cases are m_c = 1.2 % (e₀ = 0.718) and
   m_c = 5.3 % (e₀ = 0.709), which complete the Fig. 10 comparison. The paper
   notes shear-band localisation in the 5.3 % test and states its modelling is
   out of scope, so poorer agreement is expected there and is not a defect.
-- **μ parametric study (Figs. 13 and 14).** m_c = 2.4 %, σ₃ = 100 kPa, varying
-  `$mu_p` only. Use **μ = 1.5, 4.5, 8.5, 12.5**.
-
-  **Discrepancy in the paper:** Table 5 lists the fourth case as μ = 16.5, but
-  Figs. 13 and 14 are plotted for μ = 12.5. Use 12.5 to reproduce the plotted
-  figures, and state this inconsistency explicitly in the write-up rather than
-  silently picking one.
+- ~~μ parametric study (Figs. 13 and 14)~~ — **COMPLETE**, see the μ
+  Sensitivity Study section above.
 
 - **Confining pressure series (Fig. 15, Table 6).** Note that each confinement
   has its own e₀ *and* its own m_c — this is not a constant-cementation
