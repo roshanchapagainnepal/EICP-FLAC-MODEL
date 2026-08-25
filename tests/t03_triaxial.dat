@@ -62,8 +62,8 @@ def set_case
 end
 ;
 ; --- CASE SELECTION: edit these two values ---
-set t_mc=2.4        ; calcite mass content in PERCENT
-set t_e0=0.715      ; initial void ratio
+set t_mc=0.9        ; calcite mass content in PERCENT
+set t_e0=0.723      ; initial void ratio
 ;
 ; --- properties ---
 ; m_pc is NOT set here. It is assigned by set_case below from
@@ -74,14 +74,18 @@ prop m_chi 1.0  m_kb 1.0e10
 ;
 set_case
 ;
-; --- initial stress state: isotropic at 200 kPa ---
+; --- initial stress state: isotropic at 100 kPa ---
 ; NOTE: sigma3 is encoded in TWO places - here and in the servo
 ; target $s_target below. Change BOTH together or the servo will
 ; drive the radial stress back to the old value and the run will
 ; look stable while being silently wrong.
-; The mu study (Figs. 13 and 14) uses 100 kPa; the Fig. 10
-; validation set uses 200 kPa, which is restored here.
-ini sxx -200000.0 syy -200000.0 szz -200000.0
+;
+; Confinements used by the different studies:
+;   Fig. 10 validation set (mc series)  200 kPa
+;   mu study (Figs. 13 and 14)          100 kPa
+;   Table 6 confinement series          100 / 200 / 400 kPa
+; Currently set for Table 6 Trial 1 at 100 kPa.
+ini sxx -100000.0 syy -100000.0 szz -100000.0
 ;
 ; --- consistent sub-loading initialisation ---
 ; computes R0 from the initial stress state and pc
@@ -153,7 +157,7 @@ ini xvel 0.0 i=2
 ;-----------------------------------------------------------
 ;
 def servo_set
-    $s_target = -200000.0    ; sxx target, Pa (compression negative)
+    $s_target = -100000.0    ; sxx target, Pa (compression negative)
     $s_gain   = 5.0e-10      ; ~0.12 of deadbeat 1/m_e1
     $s_vmax   = 1.0e-6       ; runaway clamp on radial velocity
 end
