@@ -62,8 +62,8 @@ def set_case
 end
 ;
 ; --- CASE SELECTION: edit these two values ---
-set t_mc=1.2        ; calcite mass content in PERCENT
-set t_e0=0.718      ; initial void ratio
+set t_mc=1.4        ; calcite mass content in PERCENT
+set t_e0=0.715      ; initial void ratio
 ;
 ; --- properties ---
 ; m_pc is NOT set here. It is assigned by set_case below from
@@ -84,8 +84,8 @@ set_case
 ;   Fig. 10 validation set (mc series)  200 kPa
 ;   mu study (Figs. 13 and 14)          100 kPa
 ;   Table 6 confinement series          100 / 200 / 400 kPa
-; Currently set for Table 6 Trial 2 at 200 kPa.
-ini sxx -200000.0 syy -200000.0 szz -200000.0
+; Currently set for Table 6 Trial 3 at 400 kPa.
+ini sxx -400000.0 syy -400000.0 szz -400000.0
 ;
 ; --- consistent sub-loading initialisation ---
 ; computes R0 from the initial stress state and pc
@@ -139,12 +139,17 @@ ini xvel 0.0 i=2
 ; of deadbeat: the error decays over roughly eight steps, which
 ; is far faster than the loading changes it.
 ;
-; The SAME gain is used at other confinements without retuning.
-; K = (1+e)p'/kappa scales with p', so at sigma3 = 100 kPa the
-; effective loop gain HALVES to about 0.06 of deadbeat. That is
-; the safe direction - under-gaining costs a little tracking
-; accuracy, over-gaining oscillates. Tracking error stayed near
-; 0.04 % of target at both 100 and 200 kPa.
+; The SAME gain is used at every confinement without retuning.
+; K = (1+e)p'/kappa scales with p', so the effective loop gain
+; scales WITH sigma3:
+;   sigma3 = 100 kPa  ->  ~0.06 of deadbeat (safe, slower)
+;   sigma3 = 200 kPa  ->  ~0.12 of deadbeat (as designed)
+;   sigma3 = 400 kPa  ->  ~0.24 of deadbeat (still stable)
+; Under-gaining only costs tracking accuracy; over-gaining
+; oscillates. Even at 400 kPa the loop is well short of the
+; chatter threshold, but that is the one direction to watch:
+; if t_sr ever oscillates around the target instead of tracking
+; it smoothly, reduce $s_gain rather than changing anything else.
 ;
 ; Under-gaining is the safe direction. K = (1+e)p'/kappa GROWS
 ; as p' rises during shearing, so the effective loop gain
@@ -157,7 +162,7 @@ ini xvel 0.0 i=2
 ;-----------------------------------------------------------
 ;
 def servo_set
-    $s_target = -200000.0    ; sxx target, Pa (compression negative)
+    $s_target = -400000.0    ; sxx target, Pa (compression negative)
     $s_gain   = 5.0e-10      ; ~0.12 of deadbeat 1/m_e1
     $s_vmax   = 1.0e-6       ; runaway clamp on radial velocity
 end
