@@ -100,41 +100,58 @@ def eicp_par_ken
     $ini_chi  = 1.0          ; intact bonding at t = 0
 ;
 ;-----------------------------------------------------------
-; TRIAL PRE-CONSOLIDATION PRESSURE
+; PRE-CONSOLIDATION PRESSURE - CALIBRATION TRIAL LOG
 ;
-; Derived from the PURE SAND peak at sigma3 = 200 kPa
-; (Table 1: q_peak = 629.11 kPa), using the requirement that
-; the stress lies on the yield surface at peak while following
-; the drained path p' = sigma3 + q/3:
+; pc is calibrated against the PURE SAND peak at sigma3 =
+; 200 kPa (Kennedy Table 1: q = 629.11 kPa at 3-5 % strain).
 ;
-;   p'        = 200 + 629.11/3            = 409.703 kPa
-;   q^2/M^2   = 395779.39 / 1.1881        = 333119.6
-;   p'^2                                   = 167856.8
+; ---- TRIAL 1: 7,476,000 Pa - REJECTED ----
+; Derived in closed form from the surface-size requirement:
+;   p'        = 200 + 629.11/3                = 409.703 kPa
+;   q^2/M^2   = 395779.39 / 1.1881            = 333119.6
+;   p'^2                                       = 167856.8
 ;   p0_needed = (333119.6 + 167856.8)/409.703 = 1222.78 kPa
-;   R0        = 200 / 1222.78              = 0.16356
-;   pc        = 1222.78 / 0.16356          = 7476 kPa
+;   R0        = 200 / 1222.78                 = 0.16356
+;   pc        = 1222.78 / 0.16356             = 7476 kPa
 ;
-; CAUTION - this recipe is not internally self-consistent.
-; It defines R0 from p0_needed, then recovers pc as
+; RESULT: peak q = 2440 kPa at 2.4 % axial strain, against a
+; target of 629 kPa at 3-5 %. Overshoot factor 3.9, and the
+; peak arrived too early. Run confirmed R0 = 0.026, pb = 0
+; throughout, pc falling 7500 -> 1440 kPa (correct direction),
+; unbalanced force zero. The model behaved correctly; the
+; input value was wrong.
+;
+; WHY IT FAILED: the derivation is not self-consistent. It
+; takes R0 from p0_needed and then recovers pc as
 ; p0_needed/R0, which reduces to pc = p0_needed^2 / sigma3.
 ; Substituting pc = 7476 kPa back into the model's own
 ; consistent initialisation gives R0 = 200/7476 = 0.027, not
-; the 0.164 assumed in the derivation. Both values can reach
-; p0 = 1222.78 kPa at peak, but at very different R and hence
-; at very different axial strain.
+; the 0.164 the derivation assumed - and the run measured
+; 0.026. More generally, NO closed-form route from a target
+; peak to pc exists: R, pc, chi and the dilation response
+; evolve in a coupled way during shearing, the same coupling
+; demonstrated in both parameter directions during the Gai
+; mu and a sensitivity studies.
 ;
-; An independent estimate from the Gai pc calibration
-; (pc = 800 kPa gave a 420 kPa peak, 900 kPa gave 460 kPa,
-; i.e. about 0.4 kPa of peak per kPa of pc at sigma3 = 200)
-; extrapolates to pc of roughly 1300-1400 kPa for a 629 kPa
-; peak. That is a factor of ~5 below the value below.
+; ---- TRIAL 2: 1,350,000 Pa - CURRENT ----
+; Estimated empirically by scaling the verified Gai & Sanchez
+; pc calibration rather than by closed form:
+;   Gai Ottawa sand at sigma3 = 200 kPa:
+;     pc = 800 kPa -> pure sand peak 420 kPa
+;     pc = 900 kPa -> pure sand peak 460 kPa
+;     i.e. about 0.4 kPa of peak per kPa of pc
+;   Direct proportion: 800 x (629/420)         = 1198 kPa
+;   Allowing for the sublinear pc/pb compensation the
+;   plausible bracket is roughly 1200-1500 kPa.
+; Set at 1350 kPa, mid-bracket.
 ;
-; DISCRIMINATOR: Kennedy reports the pure sand peak at 3-5 %
-; axial strain. If trial 1 peaks much earlier than that, try
-; pc = 1.35e6 Pa next.
+; ACCEPTANCE CRITERION: peak q = 629 +/- 15 kPa at 3-5 %
+; axial strain. Judge BOTH magnitude AND strain-to-peak.
+; Trial 1 failed on both. Matching the peak magnitude at the
+; wrong strain would point at eta, not pc.
 ;-----------------------------------------------------------
-    $ini_pc_ken = 7476000.0  ; TRIAL 1 (Pa) - see caution above
-    $ini_pc     = 7476000.0  ; UDM fallback, keep equal to above
+    $ini_pc_ken = 1350000.0  ; TRIAL 2 (Pa)
+    $ini_pc     = 1350000.0  ; UDM fallback, keep equal to above
 ;
 ;-----------------------------------------------------------
 ; NUMERICAL GUARDS - identical to the verified Gai set
