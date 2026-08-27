@@ -565,6 +565,118 @@ plastic contributions.
    would need a synthetic series holding e₀ and m_c fixed, which has no
    experimental counterpart.
 
+## Kennedy (2023) External Validation
+
+**Kennedy, A.G.R., Jhuo, Y.S. & Ge, L. (2023)**, "A laboratory investigation of
+using enzyme induced calcite precipitation for soil strength improvement",
+*Smart Geotechnics for Smart Societies*, Taylor & Francis, pp. 572–577,
+DOI 10.1201/9781003299127-72 (Open Access).
+
+Crushed silica sand, D_r = 50 %, e₀ = 0.7425. CD triaxial to 20 % strain at
+σ₃ = 50 / 100 / 200 kPa. Files: `scripts/01c_params_kennedy.fis`,
+`tests/t05_kennedy.dat`. The verified UDM `02_m_eicp.fis` is unchanged.
+
+### 1. Pure sand calibration at σ₃ = 200 kPa — PASS
+
+| | |
+|---|---|
+| Calibrated | **p_c = 1,350,000 Pa** |
+| Target (Table 1) | 629.11 kPa at 3–5 % strain |
+| Model | 622 kPa at 3.7 % strain |
+| Error | **1.1 % below target**, both magnitude and strain criteria met |
+
+Trial 1 at p_c = 7,476,000 Pa (from a closed-form surface-size derivation) was
+rejected: 2440 kPa at 2.4 % strain, overshoot factor 3.9. The derivation was
+not self-consistent — it takes R₀ from `p0_needed` then recovers p_c as
+`p0_needed/R0`, i.e. `pc = p0_needed²/σ3`; substituting back gives R₀ = 0.027,
+not the 0.164 assumed, and the run measured 0.026. Trial 2 came from scaling
+the Gai p_c calibration empirically (≈0.4 kPa peak per kPa p_c).
+
+Same one-calibration-parameter structure as the Gai validation: p_c fitted to
+the **pure sand** curve alone; M, a, μ published; κ, λ, ν, D_s, η declared
+assumptions carried from Gai.
+
+### 2. Pure sand cross-validation at σ₃ = 100 kPa — FAIL
+
+| | |
+|---|---|
+| Target | 359.95 kPa |
+| Model | **530 kPa at 3.0 % strain** |
+| Discrepancy | **+47 %** |
+| Residual at 20 % | 275 kPa |
+
+p_c was **not** re-tuned. This is cross-validation of the single calibrated
+value, not a second calibration point.
+
+### 3. Critical state asymptotes, q_crit = Mσ₃/(1 − M/3)
+
+| σ₃ | M = 1.09 (model) | M = 1.393 (Kennedy φ′_res = 34.43°) |
+|---|---|---|
+| 50 kPa | 85.6 kPa | 130.0 kPa |
+| 100 kPa | 171.2 kPa | 260.0 kPa |
+| 200 kPa | 342.4 kPa | 520.1 kPa |
+
+The model's 275 kPa residual at 20 % (σ₃ = 100) sits above its own M = 1.09
+asymptote of 171 kPa, so the specimen had not reached critical state at the
+termination strain and was still softening toward it.
+
+### 4. Finding — and a correction to the first-pass diagnosis
+
+**A single fixed p_c cannot reproduce the confinement scaling of peak strength
+in this sand. Correcting M would not fix it.**
+
+The first reading attributed the +47 % to the M mismatch. The arithmetic does
+not support M as the direct cause, for two reasons.
+
+**(a) The M error points the wrong way.** M = 1.09 is *lower* than the sand's
+implied 1.393. A lower M flattens the yield ellipse, giving *less* q for a
+given surface size — so M = 1.09 acting alone would **under**-predict, not
+over-predict by 47 %. What actually happened is that matching the 200 kPa peak
+with a too-low M forced p_c to be inflated: the surface size required at peak
+is 1222.8 kPa with M = 1.09 but only 907.5 kPa with M = 1.393, a factor of
+1.35. The over-prediction at 100 kPa is that inflated p_c being carried to a
+confinement where it is not compensated.
+
+**(b) The scaling failure is independent of M.** Required surface size at peak,
+p₀ = (q²/M² + p′²)/p′ on the drained path:
+
+| | required p₀, M = 1.09 | required p₀, M = 1.393 |
+|---|---|---|
+| σ₃ = 50, q = 189.05 | 379.2 kPa | 276.0 kPa |
+| σ₃ = 100, q = 359.95 | 715.7 kPa | 523.5 kPa |
+| σ₃ = 200, q = 629.11 | 1222.8 kPa | 907.5 kPa |
+| **ratio 200 : 100** | **1.708** | **1.733** |
+
+The data demand that p₀ at peak rise by ~1.71× when σ₃ doubles — and that
+requirement is **essentially identical for either M** (1.708 vs 1.733). But
+what the model delivered was:
+
+| | delivered p₀ at peak |
+|---|---|
+| σ₃ = 200, q = 622 | 1206.8 kPa |
+| σ₃ = 100, q = 530 | 1131.2 kPa |
+| **ratio** | **1.067** |
+
+**1.07 delivered against 1.71 required.** With p_c a fixed initial state
+variable and R saturating toward 1, p₀ at peak tends toward p_c regardless of
+confinement, so the model produces near **confinement-independent** peak
+strength. Kennedy's sand is essentially frictional — peaks of 189 / 360 / 629
+scale almost proportionally with σ₃ (ratios 1.90 and 1.75).
+
+**Statement of the finding.** The Gai & Sánchez model calibrated to Ottawa sand
+(M = 1.09) cannot transfer to Kennedy's crushed silica sand (M implied 1.393)
+across multiple confinements using a single p_c. The M mismatch sets the level
+and inflates the calibrated p_c by ~1.35×; the dominant failure is structural —
+a fixed initial p_c gives confinement-independent peak strength where the sand
+requires near-proportional scaling. This is a limitation of characterising a
+sand by a fixed pre-consolidation pressure rather than by a state parameter or
+relative density, and is not remedied by adjusting M.
+
+**Falsifiable prediction for σ₃ = 50 kPa.** If the mechanism above is right,
+the model's p₀ at peak will again land near 1000–1150 kPa, giving a peak of
+roughly **430–480 kPa against a target of 189.05 kPa (+130 % to +150 %)**. A
+much smaller error would falsify the confinement-independence explanation.
+
 ## Still to verify
 
 Nothing remains for the validation programme. Optional extensions:
