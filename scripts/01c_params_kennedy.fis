@@ -133,7 +133,7 @@ def eicp_par_ken
 ; demonstrated in both parameter directions during the Gai
 ; mu and a sensitivity studies.
 ;
-; ---- TRIAL 2: 1,350,000 Pa - CURRENT ----
+; ---- TRIAL 2: 1,350,000 Pa - ACCEPTED, CALIBRATED ----
 ; Estimated empirically by scaling the verified Gai & Sanchez
 ; pc calibration rather than by closed form:
 ;   Gai Ottawa sand at sigma3 = 200 kPa:
@@ -145,12 +145,29 @@ def eicp_par_ken
 ;   plausible bracket is roughly 1200-1500 kPa.
 ; Set at 1350 kPa, mid-bracket.
 ;
-; ACCEPTANCE CRITERION: peak q = 629 +/- 15 kPa at 3-5 %
-; axial strain. Judge BOTH magnitude AND strain-to-peak.
-; Trial 1 failed on both. Matching the peak magnitude at the
-; wrong strain would point at eta, not pc.
+; CALIBRATION BASIS AND RESULT
+;   Calibrated against: PURE SAND, sigma3 = 200 kPa
+;   Target  (Kennedy Table 1): 629.11 kPa at 3-5 % strain
+;   Model:                     622    kPa at 3.7 % strain
+;   Error: 1.1 % below target - within the +/- 15 kPa band
+;   Both the magnitude AND the strain-to-peak criteria met,
+;   so the calibration is accepted. Trial 1 failed on both.
+;
+; ONE-CALIBRATION-PARAMETER STRUCTURE
+;   This mirrors the Gai & Sanchez validation exactly. pc is
+;   the ONLY quantity fitted, and it is fitted to the PURE
+;   SAND curve alone. Everything else is either published
+;   (M, a, mu, and the Gai Table 1 host-sand parameters) or
+;   declared as an assumption (kappa, lambda, nu, Ds, eta -
+;   no isotropic compression test is reported by Kennedy).
+;   Nothing is fitted to any treated response, so every
+;   EICP-treated run is a prediction, not a fit.
+;
+;   DO NOT re-tune pc per confinement or per calcite content.
+;   The 100 and 50 kPa pure sand runs are CROSS-VALIDATION of
+;   this single value, not further calibration points.
 ;-----------------------------------------------------------
-    $ini_pc_ken = 1350000.0  ; TRIAL 2 (Pa)
+    $ini_pc_ken = 1350000.0  ; CALIBRATED (Pa)
     $ini_pc     = 1350000.0  ; UDM fallback, keep equal to above
 ;
 ;-----------------------------------------------------------

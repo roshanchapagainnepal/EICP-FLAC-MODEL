@@ -83,7 +83,7 @@ def set_case
 end
 ;
 ; --- CASE SELECTION: edit these three values ---
-set t_sig3=200000.0   ; confining pressure, Pa (50e3/100e3/200e3)
+set t_sig3=100000.0   ; confining pressure, Pa (50e3/100e3/200e3)
 set t_mc=0.0          ; calcite content in PERCENT (0 / 1.87 / 2.13)
 set t_e0=0.7425       ; void ratio, Dr = 50 %
 ;
