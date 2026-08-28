@@ -565,7 +565,37 @@ plastic contributions.
    would need a synthetic series holding e₀ and m_c fixed, which has no
    experimental counterpart.
 
-## Kennedy (2023) External Validation
+## Kennedy (2023) External Validation — COMPLETE
+
+> **6 runs: pure sand and Sigma-enzyme EICP at σ₃ = 50 / 100 / 200 kPa.**
+> One calibrated parameter (p_c, fitted to the pure sand curve at 200 kPa
+> only). M, a and μ are published values applied without adjustment; κ, λ, ν,
+> D_s and η are declared assumptions carried from Gai. The verified UDM
+> `02_m_eicp.fis` was not modified.
+>
+> **Finding 1 — fixed p_c cannot produce confinement-proportional scaling.**
+> Across a fourfold σ₃ range the model delivers a p₀-at-peak ratio of **1.10**
+> where the data require **3.22**. Pure sand error grows −1 % → +47 % → +146 %
+> as confinement falls away from the calibration point. Not remedied by
+> correcting M.
+>
+> **Finding 2 — `a` over-predicts EICP cementation by a factor of ~2.1.**
+> At σ₃ = 200 kPa, the one confinement where the host-sand error is only −1 %
+> and `a` can be read cleanly: model +19.3 % against measured +9.1 %.
+> a = 200 kPa was calibrated on MICP-treated Ottawa sand.
+>
+> **Finding 3 — the cementation increment is structurally
+> confinement-independent.** 100–120 kPa at every confinement, because
+> p_b = a·χ·m_c contains no σ₃ term. Provable from the formulation and
+> confirmed numerically across the fourfold range; the increment tracks
+> calcite content, not confining pressure.
+>
+> **Rejected figure.** The 41× over-prediction ratio at σ₃ = 100 kPa is
+> **not** reported. Its denominator (2.91 kPa, +0.8 %) is the difference of two
+> single-specimen peaks and lies within triaxial repeatability, so the ratio is
+> an artifact of dividing by a noise-floor value. See the caution in §7.
+
+
 
 **Kennedy, A.G.R., Jhuo, Y.S. & Ge, L. (2023)**, "A laboratory investigation of
 using enzyme induced calcite precipitation for soil strength improvement",
@@ -672,10 +702,125 @@ requires near-proportional scaling. This is a limitation of characterising a
 sand by a fixed pre-consolidation pressure rather than by a state parameter or
 relative density, and is not remedied by adjusting M.
 
-**Falsifiable prediction for σ₃ = 50 kPa.** If the mechanism above is right,
-the model's p₀ at peak will again land near 1000–1150 kPa, giving a peak of
-roughly **430–480 kPa against a target of 189.05 kPa (+130 % to +150 %)**. A
-much smaller error would falsify the confinement-independence explanation.
+### 5. Complete pure sand series — mechanism CONFIRMED
+
+All three confinements, p_c = 1,350,000 Pa calibrated once at σ₃ = 200 kPa and
+never re-tuned. M = 1.09 throughout.
+
+| σ₃ | Model peak q | Target (Table 1) | Error | p₀ delivered | p₀ required |
+|---|---|---|---|---|---|
+| 50 kPa | 465 kPa at 2.4 % | 189.05 kPa | **+146 %** | 1092.8 kPa | 379.2 kPa |
+| 100 kPa | 530 kPa at 3.0 % | 359.95 kPa | **+47 %** | 1131.2 kPa | 715.7 kPa |
+| 200 kPa | 622 kPa at 3.7 % | 629.11 kPa | **−1 %** | 1206.8 kPa | 1222.8 kPa |
+
+**Across the fourfold confinement range the model delivers a p₀ ratio of 1.10
+where the data require 3.22.** The error grows monotonically as confinement
+falls away from the calibration point, exactly as the mechanism predicts.
+
+**The falsifiable prediction was confirmed.** Before the run, the
+confinement-independence mechanism predicted p₀ at peak would land near
+1000–1150 kPa, giving 430–480 kPa at σ₃ = 50 kPa. The model returned **465 kPa
+with p₀ = 1092.8 kPa** — inside the predicted band on both counts. A materially
+smaller error would have falsified the explanation and returned the diagnosis
+to M; it did not.
+
+Residuals confirm the same picture: 165 kPa at 20 % strain (σ₃ = 50) against
+the model's own M = 1.09 asymptote of 85.6 kPa, so the specimen is still
+softening toward critical state at the termination strain, as at 100 kPa.
+
+### 6. Finding
+
+> **The Gai & Sánchez model with a fixed initial pre-consolidation pressure
+> cannot reproduce the confinement-dependent strength scaling of a frictional
+> sand.**
+
+With p_c a fixed initial state variable and R saturating toward 1 during
+shearing, p₀ at peak tends toward p_c irrespective of confining pressure. The
+model therefore produces **near-confinement-independent peak strength**
+(p₀ ratio 1.10 over a 4× range), while Kennedy's sand is essentially frictional
+and requires **near-proportional scaling** (p₀ ratio 3.22; measured peaks of
+189 / 360 / 629 kPa scale at 1.90 and 1.75 per doubling).
+
+These are structurally incompatible. The consequence is that a single p_c can
+be made to fit exactly one confinement — whichever is used for calibration —
+and will diverge increasingly at every other.
+
+**This is not remedied by correcting M.** The required p₀ ratio is essentially
+identical for M = 1.09 (1.708) and M = 1.393 (1.733) between 100 and 200 kPa.
+The M mismatch sets the absolute level and inflates the calibrated p_c by
+~1.35×, but the scaling failure is independent of it. The remedy would be a
+formulation in which the reference surface size is tied to the current state —
+a state parameter or relative density — rather than to a fixed p_c.
+
+**Scope note.** This limitation concerns the *host sand* model, and applies
+equally to the untreated and treated cases. It is logically prior to any
+question about the transferability of the cementation parameters a and μ, and
+should be reported before them.
+
+### 7. Sigma enzyme (EICP-treated) — `a` transferability
+
+Blind prediction. p_c = 1,350,000 Pa from the pure sand calibration; a = 200 kPa
+and μ = 6.5 the published Gai values, unchanged. m_c is the per-specimen CCC
+from Kennedy Table 1. Each model result is compared against the **model's own**
+pure sand peak at the same confinement, which isolates the cementation effect
+from the host-sand scaling error of Section 6.
+
+| σ₃ | m_c | Model PS | Model Sigma | Model ratio | Model incr. | Paper ratio | Paper incr. |
+|---|---|---|---|---|---|---|---|
+| 50 kPa | 1.87 % | 465 kPa | 565 kPa | **1.215** | 100 kPa | 1.055 | 10.43 kPa |
+| 100 kPa | 2.13 % | 530 kPa | 650 kPa | **1.226** | 120 kPa | 1.008 | 2.91 kPa |
+| 200 kPa | 2.13 % | 622 kPa | 742 kPa | **1.193** | 120 kPa | 1.091 | 57.47 kPa |
+
+**Model finding (structural, provable from the formulation).** The model's
+cementation increment is **100–120 kPa across a fourfold confinement range**,
+and the ratios are near-identical at 1.215 / 1.226 / 1.193. This follows
+directly from Eq. 3: p_b = a·χ·m_c contains **no dependence on σ₃**. The
+bonding contribution to the surface size is fixed by calcite content alone, so
+the resulting strength increment is structurally confinement-independent. This
+needs no data to establish; it is a property of the formulation, and the runs
+confirm it numerically.
+
+The one variation is itself confirmatory: the 50 kPa specimen has m_c = 1.87 %
+rather than 2.13 %, giving p_b = 374 kPa instead of 426 kPa, and its increment
+drops to 100 kPa. The increment ratio (100/120 = 0.83) tracks the calcite
+ratio (1.87/2.13 = 0.88), not the confinement. **The increment scales with p_b,
+not with σ₃** — exactly as the formulation requires.
+
+**Over-prediction at the calibration confinement.** At σ₃ = 200 kPa the
+host-sand error is only −1 %, so this is the one confinement where `a` can be
+assessed cleanly: **+19.3 % model against +9.1 % measured, a factor of 2.1**.
+This is the defensible statement of `a` over-prediction.
+
+Note the over-prediction is *smaller* than a naive estimate suggests: p_b =
+426 kPa enlarges the surface by 32 % over p_c = 1350 kPa, yet the peak rose
+only 19.3 %. The p_c/p_b compensation demonstrated during the Gai μ and `a`
+sensitivity studies absorbs part of the gain — the enlarged surface pushes the
+specimen further onto the dry side, it dilates harder, and p_c erodes faster.
+Third independent appearance of the same mechanism.
+
+**CAUTION — do not quote the 41× figure.** At σ₃ = 100 kPa the measured
+increment is 2.91 kPa (+0.8 %), and dividing the model's 120 kPa by it gives
+41×. That ratio is an artifact of dividing by a value at the experimental noise
+floor, not a physical result. Three reasons to treat it as unusable:
+
+1. **0.8 % is within triaxial specimen-to-specimen repeatability.** The
+   measured "increment" at 100 kPa is the difference of two single-specimen
+   peaks and is statistically indistinguishable from zero.
+2. **The measured increments are non-monotonic in σ₃**: 10.43 → 2.91 →
+   57.47 kPa at 50 / 100 / 200 kPa. A systematic confinement-dependent
+   cementation efficiency would not dip in the middle.
+3. **The 100 and 200 kPa specimens share an identical CCC of 2.13 %**, yet
+   their measured increments differ twentyfold. With n = 1 per condition, that
+   is more consistent with specimen scatter than with a confinement law.
+
+**What can and cannot be claimed.** The *model-side* statement — that p_b, and
+hence the predicted strength increment, is independent of confining pressure by
+construction — is solid and provable. The *data-side* claim that real EICP
+cementation efficiency varies systematically with confinement is **not**
+supported by this dataset: the trend is non-monotonic and rests on single
+specimens. It may be true, but Kennedy's three points cannot establish it.
+Report the model limitation; report the measured increments as data with their
+scatter acknowledged.
 
 ## Still to verify
 
