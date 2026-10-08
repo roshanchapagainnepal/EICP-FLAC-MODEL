@@ -45,7 +45,33 @@ def eicp_par_lab
     $lambda_p = 0.25         ; ASSUMED (not measurable here)
     $ds_p     = 0.04         ; published (Gai Table 1)
     $nu_p     = 0.17         ; published (Gai Table 1)
-    $eta_p    = 60.0         ; published (Gai Table 1)
+;
+;   eta - ASSUMED, AND FOUND NOT TO TRANSFER TO THIS SAND.
+;   eta sets the rate at which the sub-loading ratio R grows
+;   (Eq. 6, dR = -eta ln(R) |dep|), and therefore the STRAIN
+;   SCALE of the response: how much straining is needed for
+;   the sub-loading surface to inflate out to the stress path.
+;
+;   Phase A found the model's peak at 5.0 % axial strain
+;   against a measured 2.45 % - 2.04x too late - with the
+;   magnitude correct to -2.6 %. The phase transformation is
+;   likewise 1.63x late (4.0 % against 2.45 %). R is growing
+;   too slowly, so eta = 60 is too LOW for this sand; a higher
+;   eta would move the peak earlier without altering its
+;   magnitude, since eta does not enter the surface size.
+;
+;   RETAINED UNCHANGED at the published value. The strain-scale
+;   mismatch is reported as an eta-transferability finding, not
+;   corrected - correcting it would convert a prediction into a
+;   two-parameter fit.
+;
+;   This is the SECOND assumed-and-published parameter found
+;   not to transfer, alongside a = 200 kPa (Kennedy series:
+;   over-predicts the EICP cementation increment by ~2.1x).
+;   Both were calibrated on MICP-treated Ottawa sand. Together
+;   they bound what can be carried over from Gai & Sanchez:
+;   the FORM of the model transfers, the CALIBRATION does not.
+    $eta_p    = 60.0         ; published; see note above
 ;
 ;-----------------------------------------------------------
 ; CRITICAL STATE SLOPE - M = 1.09 RETAINED
@@ -114,10 +140,41 @@ def eicp_par_lab
 ; calcite content. Later confinements, if any, are
 ; cross-validation of this single value.
 ;
-; TRIAL 1: 460,000 Pa.
-; At sigma3 = 100 kPa with mc = 0 (pb = 0) this gives a
-; consistent initial sub-loading ratio of
-;     R0 = sigma3 / pc = 100000 / 460000 = 0.2174
+; CALIBRATED: 460,000 Pa - ACCEPTED at Phase A trial 1.
+;
+; CALIBRATION BASIS
+;   Specimen:  US-100, UNTREATED (mc = 0), e0 = 0.740 measured
+;   Confining: sigma3 = 100 kPa
+;   R0 = sigma3/pc = 100000/460000 = 0.2174 (pb = 0)
+;
+;   PEAK MAGNITUDE - PASS
+;     Target 238.1 kPa, acceptance band 228-248 kPa
+;     Model  232 kPa          -> -2.6 %, within band
+;
+;   STRAIN TO PEAK - FAIL, recorded as a finding
+;     Target 2.45 %,  Model 5.0 %   -> 2.04x too late
+;
+;   VOLUMETRIC RESPONSE
+;     Measured -3.67 % at 20 %,  Model -3.10 %
+;     Phase transformation: measured 2.45 %, model 4.0 %
+;                                        -> 1.63x too late
+;
+;   The two strain stretches (2.04x on peak, 1.63x on phase
+;   transformation) are of similar magnitude and the same
+;   sign, consistent with ONE underlying effect on the strain
+;   scale rather than two independent errors. They are not
+;   identical, so quote both rather than a single factor.
+;
+;   t_ev VERIFIED INDEPENDENTLY against deformed geometry:
+;     r = 1.135, h = 0.800 -> V = 3.2376 against V0 = 3.1416
+;     geometric ev = -3.06 % against t_ev -3.10 %  AGREE
+;   The void-ratio route is therefore sound. (t_vsi was
+;   misdefined - FLAC's vsi is a per-step increment, not an
+;   accumulated total - and is discarded. The geometric check
+;   above replaces it.)
+;
+;   Servo held 100,050-100,075 Pa against a 100,000 Pa target
+;   (0.05-0.08 %). Unbalanced force zero throughout.
 ;
 ; NOTE on calibrating pc: there is no valid closed-form route
 ; from a target peak strength to pc. R, pc, chi and the
@@ -127,8 +184,12 @@ def eicp_par_lab
 ; derivation was rejected for the Kennedy series after it
 ; overshot by a factor of 3.9. Calibrate by trial, judging
 ; BOTH peak magnitude AND strain-to-peak.
+;
+; DO NOT RE-TUNE. Every later run - other confinements, any
+; treated specimen - is cross-validation or prediction against
+; this single value.
 ;-----------------------------------------------------------
-    $ini_pc_lab = 460000.0   ; TRIAL 1 (Pa) - sole fitted parameter
+    $ini_pc_lab = 460000.0   ; CALIBRATED (Pa) - sole fitted param
     $ini_pc     = 460000.0   ; UDM fallback, keep equal to above
 ;
 ;-----------------------------------------------------------
