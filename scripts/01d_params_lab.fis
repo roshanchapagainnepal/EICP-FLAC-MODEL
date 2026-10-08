@@ -1,0 +1,162 @@
+;===========================================================
+; 01d_params_lab.fis
+;
+; LABORATORY VALIDATION parameter set - own test programme.
+;
+; SEPARATE from 01_parameters.fis (Gai & Sanchez verification)
+; and 01c_params_kennedy.fis (Kennedy 2023 external
+; validation). Neither of those is modified. Never call more
+; than ONE of the three parameter files in the same FLAC
+; session - the second would silently overwrite the first.
+;
+; VARIABLE NAMING - IMPORTANT
+; The names below are the ones 02_m_eicp.fis actually reads.
+; They are not free to rename. Requested labels that differ:
+;   $kappa_p  requested as $kappa_p   (same)
+;   $m_cs     requested as $M_cs
+;   $ds_p     requested as $Ds_p
+;   $ini_e    requested as $ini_e
+; FISH is case-insensitive so $M_cs and $Ds_p would in fact
+; resolve, but the canonical spellings are used here for
+; consistency with the other two parameter files.
+;===========================================================
+;
+def eicp_par_lab
+;
+;-----------------------------------------------------------
+; HOST SAND PARAMETERS
+;
+; DECLARED ASSUMPTIONS, NOT MEASUREMENTS.
+; kappa and lambda are assumptions, not results of this test
+; programme:
+;   kappa - the unload/reload (US-KL) stage was DROPPED, so no
+;           swelling line was measured. Value carried over from
+;           Gai & Sanchez (2019) Table 1.
+;   lambda - not measurable at the stress levels used here. A
+;           normal compression line cannot be identified from
+;           triaxial shearing alone; it needs isotropic
+;           compression to stresses well beyond pc. Value
+;           carried over from Gai & Sanchez Table 1.
+; Both must be reported as assumptions in the write-up. They
+; are the principal caveat on this validation, exactly as for
+; the Kennedy series.
+;-----------------------------------------------------------
+    $kappa_p  = 0.003        ; ASSUMED (US-KL stage dropped)
+    $lambda_p = 0.25         ; ASSUMED (not measurable here)
+    $ds_p     = 0.04         ; published (Gai Table 1)
+    $nu_p     = 0.17         ; published (Gai Table 1)
+    $eta_p    = 60.0         ; published (Gai Table 1)
+;
+;-----------------------------------------------------------
+; CRITICAL STATE SLOPE - M = 1.09 RETAINED
+;
+; M is NOT calibrated from this test programme, and it cannot
+; be: both specimens were STILL SOFTENING at the 20 % axial
+; strain termination, with
+;     dq/d(epsilon_a) = -3.47 kPa/%  and  -1.29 kPa/%
+;
+; A specimen still softening has not reached critical state,
+; so its stress ratio eta = q/p' is still FALLING toward M.
+; The end-of-test eta is therefore an UPPER BOUND on M, not an
+; estimate of it. The binding (smallest) upper bound from the
+; two specimens is
+;     M <= 1.147
+;
+; The published Gai & Sanchez value M = 1.09 satisfies that
+; constraint, so it is retained unchanged. This is a genuine
+; consistency check, not a fit: the data constrain M from one
+; side only and 1.09 lies inside the admissible range.
+;
+; REPORT IT AS SUCH. Do not describe 1.147 as a measured M -
+; it is a bound. Had 1.09 exceeded it, the published value
+; would have been falsified; it does not.
+;
+; Contrast with the Kennedy series, where phi'_res = 34.43 deg
+; was obtained from a specimen at residual with c' = 0, giving
+; a genuine measurement of M = 1.393 and a real mismatch.
+;-----------------------------------------------------------
+    $m_cs     = 1.09         ; retained; measured bound M <= 1.147
+;
+;-----------------------------------------------------------
+; CEMENTATION PARAMETERS - APPLIED BLIND
+;
+; Published Gai & Sanchez (2019) Table 2 values, calibrated on
+; MICP-treated Ottawa sand, applied here WITHOUT adjustment.
+; a is the quantity under test in the treated phase: the
+; Kennedy series found it over-predicts EICP cementation by a
+; factor of about 2.1 at a clean comparison point.
+;-----------------------------------------------------------
+    $a_pa     = 200000.0     ; published - THE QUANTITY UNDER TEST
+    $mu_p     = 6.5          ; published
+;
+;-----------------------------------------------------------
+; INITIAL STATE
+;
+; e0 is set per specimen by set_case in the driver, from the
+; measured value. $ini_e below is only the UDM's internal
+; fallback for a zone with no m_e assigned.
+;-----------------------------------------------------------
+    $ini_e    = 0.740        ; fallback; US-100 measured value
+    $ini_r    = 0.01         ; fallback; ini_eicp_r recomputes R0
+;                              from the actual stress state
+    $ini_chi  = 1.0          ; intact bonding at t = 0
+;
+;-----------------------------------------------------------
+; PRE-CONSOLIDATION PRESSURE - THE SOLE FITTED PARAMETER
+;
+; pc is the ONLY quantity fitted in this validation. It is
+; calibrated against the UNTREATED specimen US-100 alone.
+; Everything else is either published (M, Ds, nu, eta, a, mu)
+; or a declared assumption (kappa, lambda).
+;
+; Consequence: every treated run is a PREDICTION, not a fit.
+; Do NOT re-tune pc per specimen, per confinement or per
+; calcite content. Later confinements, if any, are
+; cross-validation of this single value.
+;
+; TRIAL 1: 460,000 Pa.
+; At sigma3 = 100 kPa with mc = 0 (pb = 0) this gives a
+; consistent initial sub-loading ratio of
+;     R0 = sigma3 / pc = 100000 / 460000 = 0.2174
+;
+; NOTE on calibrating pc: there is no valid closed-form route
+; from a target peak strength to pc. R, pc, chi and the
+; dilation response evolve in a coupled way during shearing -
+; demonstrated in both parameter directions during the Gai mu
+; and a sensitivity studies, and the reason a closed-form
+; derivation was rejected for the Kennedy series after it
+; overshot by a factor of 3.9. Calibrate by trial, judging
+; BOTH peak magnitude AND strain-to-peak.
+;-----------------------------------------------------------
+    $ini_pc_lab = 460000.0   ; TRIAL 1 (Pa) - sole fitted parameter
+    $ini_pc     = 460000.0   ; UDM fallback, keep equal to above
+;
+;-----------------------------------------------------------
+; NUMERICAL GUARDS - identical to the verified Gai set
+;-----------------------------------------------------------
+    $p_min    = 1.0          ; floor on mean effective stress
+    $pc_min   = 100.0        ; floor on pre-consolidation press.
+    $chi_min  = 1.0e-6       ; floor on damage factor
+    $r_min    = 1.0e-6       ; floor on sub-loading ratio
+    $r_max    = 1.0          ; ceiling on sub-loading ratio
+    $kb_dflt  = 1.0e10       ; default bulk modulus bound (Pa)
+;
+;-----------------------------------------------------------
+; SUBZONE ACCUMULATORS - volume weighted, reset each zsub cycle
+;-----------------------------------------------------------
+    $m_wt_acc   = 0.0        ; accumulated subzone volume
+    $m_vol_acc  = 0.0        ; total volumetric strain
+    $m_depv_acc = 0.0        ; plastic volumetric strain
+    $m_depq_acc = 0.0        ; plastic deviatoric strain
+    $m_dept_acc = 0.0        ; plastic strain norm
+    $m_p_acc    = 0.0        ; mean effective stress
+    $m_q_acc    = 0.0        ; deviatoric stress
+    $m_pls_acc  = 0.0        ; plasticity flag
+;
+end
+;
+eicp_par_lab
+;
+;===========================================================
+; EOF
+;===========================================================

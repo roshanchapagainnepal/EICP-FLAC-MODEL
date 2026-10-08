@@ -1,55 +1,47 @@
 ; ==========================================================
-; t05_kennedy.dat
-; EXTERNAL VALIDATION SERIES - Kennedy, Jhuo & Ge (2023)
+; t06_lab.dat
+; LABORATORY VALIDATION SERIES - own test programme
 ;
-; "A laboratory investigation of using enzyme induced calcite
-;  precipitation for soil strength improvement", Smart
-;  Geotechnics for Smart Societies, Taylor & Francis,
-;  pp. 572-577, DOI 10.1201/9781003299127-72 (Open Access).
+; PURPOSE. Validate the implemented Gai & Sanchez (2019) EICP
+; model against this project's own consolidated drained
+; triaxial tests. pc is the SOLE fitted parameter, calibrated
+; against the untreated specimen US-100 only; every treated
+; run is therefore a prediction, not a fit.
 ;
-; PURPOSE. Transferability assessment: do the Gai & Sanchez
-; (2019) cementation parameters (a = 200 kPa, mu = 6.5),
-; calibrated on MICP-treated Ottawa sand, transfer to
-; EICP-treated crushed silica sand without recalibration?
+; This is NOT the Gai verification series (t03) nor the
+; Kennedy 2023 external validation (t05). Both are unchanged.
+; The constitutive model 02_m_eicp.fis is also unchanged - it
+; is frozen after verification, and only the parameter file
+; and this driver are new.
 ;
-; This is NOT the Gai verification series. That is t03, which
-; is unchanged. The constitutive model 02_m_eicp.fis is also
-; unchanged - it is frozen after verification, and only the
-; parameter file and this driver are new.
+; PHASE A - untreated calibration
+;   US-100: sigma3 = 100 kPa, e0 = 0.740 measured, mc = 0
+;   Calibrate $ini_pc_lab in 01d_params_lab.fis against this
+;   specimen alone. Judge BOTH peak magnitude AND
+;   strain-to-peak.
 ;
-; TEST PROGRAMME (Kennedy Table 1), CD triaxial to 20 % strain
-;   sigma3 = 50, 100, 200 kPa in every case
+; PHASE B - treated prediction
+;   Set t_mc to the measured calcite content. Change NOTHING
+;   else. a = 200 kPa and mu = 6.5 stay at their published
+;   values; they are the quantities under test.
 ;
-;   PURE SAND      mc = 0
-;     target peak q = 189.05 / 359.95 / 629.11 kPa
-;
-;   SIGMA 5000 U/g  mc = 1.87 % at 50 kPa
-;                   mc = 2.13 % at 100 and 200 kPa
-;     target peak q = 199.48 / 362.86 / 686.58 kPa
-;
-; Kennedy Table 2 strength parameters, for comparison against
-; a Mohr-Coulomb fit through the three simulated peaks:
-;   Pure sand  c'p = 0     kPa, phi'p = 38.35 deg
-;              c'r = 0     kPa, phi'r = 34.43 deg
-;   Sigma      c'p = 9.13  kPa, phi'p = 38.22 deg
-;              c'r = 2.88  kPa, phi'r = 34.32 deg
-;
-; DECLARED M MISMATCH. The model runs M = 1.09 (Ottawa sand)
-; while Kennedy's pure sand gives M = 1.393 from
-; phi'_res = 34.43 deg. This is deliberate and is a
-; sand-transferability finding. Residual strengths will be
-; under-predicted by roughly 30 % by construction. See the
-; header of 01c_params_kennedy.fis.
+; M = 1.09 RETAINED, NOT CALIBRATED. Both specimens were still
+; softening at the 20 % termination strain (dq/d(eps_a) =
+; -3.47 and -1.29 kPa/%), so end-of-test eta is an UPPER BOUND
+; on M, not a measurement. Binding constraint M <= 1.147, and
+; the published 1.09 is consistent with it. See the header of
+; 01d_params_lab.fis.
 ; ==========================================================
 ;
 config axi
 grid 1 1
 title
-t05 - Kennedy 2023 external validation, CD triaxial
+t06 - laboratory validation, CD triaxial
 ;
 ; --- model ---
-; NOTE: calls the KENNEDY parameter file, not 01_parameters.fis
-call ..\scripts\01c_params_kennedy.fis
+; NOTE: calls the LAB parameter file. Do not also call
+; 01_parameters.fis or 01c_params_kennedy.fis in this session.
+call ..\scripts\01d_params_lab.fis
 call ..\scripts\02_m_eicp.fis
 model m_eicp
 ;
@@ -60,19 +52,19 @@ model m_eicp
 ; SET command can only assign to a FISH symbol that already
 ; exists. Defining it afterwards gives "Bad keyword ... t_mc".
 ;
-; SINGLE SOURCE FOR sigma3. In t03 the confining pressure was
-; encoded in two places - the "ini sxx" line and the servo
-; target - and changing only one produced a run that looked
-; stable while being silently wrong. Here t_sig3 drives BOTH,
-; by assigning the stresses and $s_target directly. There is
-; no second place to forget.
+; SINGLE SOURCE FOR sigma3. t_sig3 drives BOTH the initial
+; stresses AND the servo target, by assigning them directly.
+; In an earlier driver the confining pressure was encoded in
+; two independent places and changing only one produced a run
+; that looked stable while silently servo-ing to the wrong
+; pressure. There is no second place to forget here.
 ;-----------------------------------------------------------
 ;
 def set_case
 ;   --- per-zone state ---
     m_mc(1,1) = t_mc
     m_e(1,1)  = t_e0
-    m_pc(1,1) = $ini_pc_ken
+    m_pc(1,1) = $ini_pc_lab
 ;   --- initial isotropic stress state (tension positive) ---
     sxx(1,1)  = -t_sig3
     syy(1,1)  = -t_sig3
@@ -83,14 +75,14 @@ def set_case
 end
 ;
 ; --- CASE SELECTION: edit these three values ---
-set t_sig3=50000.0    ; confining pressure, Pa (50e3/100e3/200e3)
-set t_mc=1.87         ; calcite content in PERCENT (0 / 1.87 / 2.13)
-set t_e0=0.7425       ; void ratio, Dr = 50 %
+set t_sig3=100000.0   ; confining pressure, Pa
+set t_mc=0.0          ; calcite content in PERCENT (0 = untreated)
+set t_e0=0.740        ; measured void ratio, specimen US-100
 ;
 ; --- properties ---
-; m_pc is NOT set here - set_case assigns it from $ini_pc_ken
-; in 01c_params_kennedy.fis, so the pc trial is driven from a
-; single line in that file.
+; m_pc is NOT set here - set_case assigns it from $ini_pc_lab
+; in 01d_params_lab.fis, so the pc calibration is driven from
+; a single line in that file.
 prop dens 1700.0
 prop m_chi 1.0  m_kb 1.0e10
 ;
@@ -101,6 +93,7 @@ set_case
 ini_eicp_r
 ;
 ; --- CHECK THIS: 1.0 means pc is too small for sigma3 ---
+; Expected for Phase A trial 1: R0 = 100000/460000 = 0.2174
 print $eicp_err
 print m_r m_pb m_pc m_e1
 ;
@@ -117,7 +110,7 @@ fix x
 fix y
 ;
 ; Axial loading rate. 1.0e-7 x 2 000 000 steps = 0.20 m on a
-; 1 m specimen = 20 % axial strain, matching Kennedy's
+; 1 m specimen = 20 % axial strain, matching the laboratory
 ; termination strain exactly.
 ini yvel -1.0e-7 j=2
 ini xvel 0.0 i=2
@@ -135,13 +128,14 @@ ini xvel 0.0 i=2
 ; FLAC static mode), so d(sxx) = m_e1 * vx and a deadbeat gain
 ; would be 1/m_e1. A deadbeat servo chatters in an explicit
 ; code, so $s_gain is held at 5.0e-10 - the same value used
-; throughout the verified Gai series.
+; throughout the verified Gai series and the Kennedy series.
 ;
 ; K = (1+e)p'/kappa scales with p', so the effective loop gain
 ; scales with sigma3:
 ;   sigma3 =  50 kPa  ->  ~0.03 of deadbeat (very safe)
 ;   sigma3 = 100 kPa  ->  ~0.06 of deadbeat
 ;   sigma3 = 200 kPa  ->  ~0.12 of deadbeat (as designed)
+;   sigma3 = 400 kPa  ->  ~0.24 of deadbeat (still stable)
 ; Under-gaining only costs tracking accuracy; over-gaining
 ; oscillates. If t_sr ever oscillates around the target rather
 ; than tracking it smoothly, reduce $s_gain and change nothing
@@ -149,7 +143,7 @@ ini xvel 0.0 i=2
 ;-----------------------------------------------------------
 ;
 def servo_set
-    $s_gain = 5.0e-10      ; ~0.12 of deadbeat at 200 kPa
+    $s_gain = 5.0e-10      ; ~0.06 of deadbeat at 100 kPa
     $s_vmax = 1.0e-6       ; runaway clamp on radial velocity
 end
 servo_set
@@ -171,25 +165,30 @@ end
 ; --- monitored quantities ---
 def path
     t_sa  = -syy(1,1)                    ; axial stress
-    t_sr  = -sxx(1,1)                    ; radial stress
+    t_sr  = -sxx(1,1)                    ; radial stress, servo check
     t_q   = t_sa - t_sr                  ; deviatoric stress
     t_p   = -(sxx(1,1) + syy(1,1) + szz(1,1)) / 3.0
+    t_eta = t_q / t_p                    ; stress ratio, -> M at CS
     t_ea  = -ydisp(1,2) * 100.0          ; axial strain, per cent
     t_e   = m_e(1,1)
+;
 ;   Volumetric strain, per cent, COMPRESSION POSITIVE (lab
-;   convention). Exact for constant solid volume: ev = -de/(1+e0).
-;   m_e is already volume weighted over the subzones by the UDM.
+;   convention). Exact for constant solid volume:
+;   ev = -de/(1+e0). m_e is already volume weighted over the
+;   subzones by the UDM, using zart*zxbar rather than zsub,
+;   which matters in axisymmetry where subzone volumes differ.
     t_ev  = -(t_e - t_e0) / (1.0 + t_e0) * 100.0
 ;
-;   CROSS-CHECK. vsi is FLAC's own accumulated volumetric strain,
-;   computed outside the UDM entirely, so it validates the whole
-;   $zdvol -> m_e -> t_ev chain independently (FISH Ref 2.5.3.3,
-;   and Example 2.31 which checks a UDM volume strain against it).
-;   FLAC strains are EXTENSION POSITIVE, so it is negated here to
-;   match t_ev. t_vsi and t_ev should track each other closely;
-;   a systematic divergence means the UDM's void-ratio
-;   integration is drifting.
+;   CROSS-CHECK. vsi is FLAC's own accumulated volumetric
+;   strain, computed outside the UDM entirely, so it validates
+;   the whole $zdvol -> m_e -> t_ev chain independently (FISH
+;   Ref 2.5.3.3, and Example 2.31 which checks a UDM volume
+;   strain against it). FLAC strains are EXTENSION POSITIVE,
+;   so it is negated here to match t_ev. t_vsi and t_ev should
+;   track each other closely; a systematic divergence means
+;   the void-ratio integration is drifting.
     t_vsi = -vsi(1,1) * 100.0
+;
     t_pc  = m_pc(1,1)
     t_pb  = m_pb(1,1)
     t_chi = m_chi(1,1)
@@ -210,8 +209,9 @@ his t_pb
 his t_chi
 his t_r
 his t_hrd
-; appended LAST so slots 1-12 keep their existing numbers
 his t_vsi
+his t_eta
+his t_sr
 ;
 ; --- large-strain mode ---
 ; FLAC samples mode 3 (cm_max) only at the start of stepping in
@@ -227,23 +227,27 @@ step 2000000
 ; --- results ---
 ; History slots: 1 unbal, 2 path, 3 t_ea, 4 t_q, 5 t_p,
 ;                6 t_ev, 7 t_e, 8 t_pc, 9 t_pb, 10 t_chi,
-;                11 t_r, 12 t_hrd, 13 t_vsi
+;                11 t_r, 12 t_hrd, 13 t_vsi, 14 t_eta, 15 t_sr
 ;
-; Kennedy Fig. 1 equivalent: q versus axial strain
+; stress-strain: q versus axial strain
 plot his 4 vs 3 hold
-; Kennedy Fig. 2 equivalent: volumetric strain versus axial strain
+; volumetric strain versus axial strain (compression positive)
 plot his 6 vs 3 hold
+; volumetric strain CROSS-CHECK: t_ev and t_vsi must overlie
+plot his 6 13 vs 3 hold
 ; stress path in p'-q space
 plot his 4 vs 5 hold
+; stress ratio: approaches M = 1.09 only at critical state
+plot his 14 vs 3 hold
 ; cementation state: damage factor and sub-loading ratio
 plot his 10 11 vs 3 hold
 ; hardening: pc, pb and the effective hardening parameter
 plot his 8 9 12 vs 3 hold
-; servo check: radial stress must hold at t_sig3
-plot his 1 hold
+; servo check: radial stress must hold flat at t_sig3
+plot his 15 vs 3 hold
 ;
 print m_e m_pc m_pb m_chi m_r m_ind m_epv m_epq
 ;
-save t05_kennedy.sav
+save t06_lab.sav
 ;
 return
