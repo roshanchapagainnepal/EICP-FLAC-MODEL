@@ -979,24 +979,51 @@ Same conditions as Phase C, varying only `$a_pa`. **Documented sensitivity, not
 a recalibration** — a = 200 kPa remains the validation case and must be
 restored afterwards.
 
-| Trial | a | p_b | R₀ | dry while q < | gain if ~linear |
-|---|---|---|---|---|---|
-| C | 200 kPa | 534.0 kPa | 0.1006 | 1191 kPa | +68.1 % (observed) |
-| **D1** | **50 kPa** | **133.5 kPa** | **0.1685** | 590 kPa | +17.0 % |
-| D2 | 25 kPa | 66.8 kPa | 0.1898 | 490 kPa | +8.5 % |
-| D3 | 12.5 kPa | 33.4 kPa | 0.2027 | 440 kPa | +4.3 % |
-| — | 0 | 0 | 0.2174 | 390 kPa | 0 (untreated) |
+| Trial | a | p_b | R₀ | Peak q | Gain | ε_v at 20 % |
+|---|---|---|---|---|---|---|
+| C | 200 kPa | 534.0 kPa | 0.1006 | 390 kPa at 3.0 % | **+68.1 %** | **−8.00 %** |
+| **D1** | **50 kPa** | **133.5 kPa** | **0.1685** | **274 kPa at 3.7 %** | **+18.1 %** | **−4.50 %** |
+| D2 | 25 kPa | 66.8 kPa | 0.1898 | pending | pending | pending |
+| D3 | 12.5 kPa | 33.4 kPa | 0.2027 | — | — | — |
+| — | 0 (untreated) | 0 | 0.2174 | 232 kPa at 4.5 % | 0 | **−3.10 %** |
+| **Measured ET-100** | | | | **257.8 kPa at 3.73 %** | **+8.3 %** | **−2.35 %** |
 
-Target: **+8.3 %** over the model's own 232 kPa untreated baseline, i.e. a peak
-near 258 kPa. All three trials stay on the dry side, so each yields a usable
-peak.
+**Gain is linear in `a` over 50–200 kPa.** Scaling D1 up by four predicts
++72.4 % against +68.1 % observed — 6 % sublinear. Interpolating D1 to the
++8.3 % target gives **a ≈ 23 kPa**, bracketed between D3 and D2. The
+pre-run scaling expectation (+17.0 % for D1) was confirmed at +18.1 %.
 
-The final column is a **scaling expectation, not a derivation** — the Gai `a`
-study found the *gain* roughly linear in `a` (+35.7 / +52.4 / +69.0 % at
-200 / 300 / 400 kPa) even though peak q itself is sublinear. On that basis D2
-would land near target. Treat it as a prediction to be tested: the regime here
-differs (p_b/p_c = 1.16 at Phase C against 0.6 in the Gai study), so a
-departure from linearity is informative rather than a problem.
+D1 state variables all correct: p_c 460 → 466 → 336 kPa (erodes = dry side),
+η peaks 1.43 then descends to 1.20, p_b 134 → 30 kPa, χ 1.00 → 0.22, R₀ = 0.17
+as predicted, servo 0.2 %, `unbal` zero.
+
+#### The dilation floor — decisive, and pre-registered
+
+Volumetric strain at 20 % is **monotone in `a`**, and the a = 0 case is the
+least-dilative state the model can produce:
+
+| a | ε_v at 20 % |
+|---|---|
+| 0 (untreated) | **−3.10 % ← the floor** |
+| 50 kPa | −4.50 % |
+| 200 kPa | −8.00 % |
+| **Measured ET-100** | **−2.35 % ← below the floor** |
+
+More cementation always means *more* dilation, because p_b enters only through
+p₀ = R(p_c + p_b) and a larger surface drives the stress point further onto the
+dry side. The measured specimen is **less** dilative than the model's untreated
+baseline, so it lies outside the model's accessible range entirely.
+
+> **No non-negative `a` can reach the measured dilation.** a < 0 is outside the
+> formulation's admissible domain — it would mean cementation shrinking the
+> yield surface, with p₀ able to go negative and invert it. This is not a
+> hidden option.
+
+**This hypothesis was stated before D1 was run** and is now confirmed
+numerically across three values of `a`, with monotonicity demonstrated rather
+than assumed. **The strength gain can be matched; the dilation cannot, at any
+admissible `a`.** Phase D therefore bounds `a` and simultaneously falsifies the
+model's cementation kinematics for this material — two results from one study.
 
 ## Still to verify
 

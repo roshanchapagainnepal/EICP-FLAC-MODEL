@@ -118,13 +118,41 @@ def eicp_par_lab
 ;   over-predicted the cementation gain by 8.2x (+68.1 %
 ;   model against +8.3 % measured). Phase D brackets the
 ;   effective value by trial:
-;     C   a = 200000 Pa  pb = 534.0 kPa  gain +68.1 % (done)
-;     D1  a =  50000 Pa  pb = 133.5 kPa  R0 = 0.1685
-;     D2  a =  25000 Pa  pb =  66.8 kPa  R0 = 0.1898
+;     C   a = 200000 Pa  pb = 534.0 kPa  gain +68.1 %  ev -8.00 %
+;     D1  a =  50000 Pa  pb = 133.5 kPa  gain +18.1 %  ev -4.50 %
+;     D2  a =  25000 Pa  pb =  66.8 kPa  R0 = 0.1898  (current)
 ;     D3  a =  12500 Pa  pb =  33.4 kPa  R0 = 0.2027
-;   All three remain on the DRY side at sigma3 = 100 kPa
+;     --  a =      0 Pa  pb =   0.0 kPa  gain  0      ev -3.10 %
+;   All trials remain on the DRY side at sigma3 = 100 kPa
 ;   (dry while q < 590 / 490 / 440 kPa against a 258 kPa
 ;   target), so each run yields a usable peak.
+;
+;   GAIN IS LINEAR IN a over 50-200 kPa: scaling D1 up by 4
+;   predicts +72.4 % against +68.1 % observed, i.e. 6 %
+;   sublinear. Interpolating D1 to the +8.3 % target gives
+;   a ~ 23 kPa, so the answer is bracketed between D3 and D2.
+;
+;   DILATION FLOOR - THE DECISIVE RESULT.
+;   Volumetric strain at 20 % is MONOTONE in a:
+;     a =      0 : -3.10 %   <- the floor
+;     a =  50000 : -4.50 %
+;     a = 200000 : -8.00 %
+;   More cementation always means MORE dilation, because pb
+;   enters only through p0 = R(pc + pb) and a larger surface
+;   drives the stress point further onto the dry side. The
+;   least-dilative state the model can reach for a treated
+;   specimen is therefore the a = 0 untreated value, -3.10 %.
+;   Measured ET-100 is -2.35 %, which lies BELOW that floor.
+;
+;   NO NON-NEGATIVE a CAN REACH IT. a < 0 is outside the
+;   formulation's admissible domain - it would mean cementation
+;   shrinking the yield surface, and p0 could go negative and
+;   invert the surface. So this is not a hidden option.
+;
+;   The hypothesis was stated BEFORE D1 was run and is now
+;   confirmed numerically across three values of a: the
+;   strength gain can be matched, the dilation cannot, at any
+;   admissible a.
 ;
 ;   THIS IS A DOCUMENTED SENSITIVITY, NOT A RECALIBRATION.
 ;   a = 200 kPa remains the validation case. RESTORE IT when
@@ -134,7 +162,7 @@ def eicp_par_lab
 ;   coupling has now been demonstrated in three independent
 ;   contexts (Gai mu study, Gai a study, and the pc evolution
 ;   across the lab confinements). Bracket by trial.
-    $a_pa     = 50000.0      ; PHASE D1 (published 200000.0)
+    $a_pa     = 25000.0      ; PHASE D2 (published 200000.0)
     $mu_p     = 6.5          ; published
 ;
 ;-----------------------------------------------------------
