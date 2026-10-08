@@ -113,28 +113,45 @@ def eicp_par_lab
 ; factor of about 2.1 at a clean comparison point.
 ;-----------------------------------------------------------
 ;
-;   a - PHASE D BRACKETING STUDY IN PROGRESS.
+;   a - PHASE D BRACKETING STUDY: COMPLETE.
+;   a IS RESTORED BELOW TO ITS PUBLISHED VALUE.
 ;   Phase C applied the published a = 200 kPa blind and
 ;   over-predicted the cementation gain by 8.2x (+68.1 %
 ;   model against +8.3 % measured). Phase D brackets the
 ;   effective value by trial:
 ;     C   a = 200000 Pa  pb = 534.0 kPa  gain +68.1 %  ev -8.00 %
 ;     D1  a =  50000 Pa  pb = 133.5 kPa  gain +18.1 %  ev -4.50 %
-;     D2  a =  25000 Pa  pb =  66.8 kPa  R0 = 0.1898  (current)
-;     D3  a =  12500 Pa  pb =  33.4 kPa  R0 = 0.2027
-;     --  a =      0 Pa  pb =   0.0 kPa  gain  0      ev -3.10 %
-;   All trials remain on the DRY side at sigma3 = 100 kPa
-;   (dry while q < 590 / 490 / 440 kPa against a 258 kPa
-;   target), so each run yields a usable peak.
+;     D2  a =  25000 Pa  pb =  66.8 kPa  gain  +9.48%  ev -3.80 %
+;     D3  a =  12500 Pa  NOT RUN - bracket already closed
+;     --  a =      0 Pa  pb =   0.0 kPa  gain  0       ev -3.10 %
+;     measured ET-100                    gain  +8.3 %  ev -2.35 %
+;   All trials remained on the DRY side at sigma3 = 100 kPa, so
+;   every run yielded a usable peak (pc eroded in all three).
 ;
-;   GAIN IS LINEAR IN a over 50-200 kPa: scaling D1 up by 4
-;   predicts +72.4 % against +68.1 % observed, i.e. 6 %
-;   sublinear. Interpolating D1 to the +8.3 % target gives
-;   a ~ 23 kPa, so the answer is bracketed between D3 and D2.
+;   GAIN IS LINEAR IN a OVER 25-200 kPa, mildly sublinear:
+;     gain/a = 0.379 / 0.362 / 0.341 %/kPa at a = 25/50/200
+;   The fall in gain per unit a is the pc/pb compensation -
+;   its FOURTH independent appearance (Gai mu study, Gai a
+;   study, lab pc evolution across confinements, and here).
+;
+;   EFFECTIVE a BOUND: ~22 kPa, i.e. 9.1x BELOW the published
+;   200 kPa. From D2, a = 25 x 8.3/9.48 = 21.9 kPa. Bracketed
+;   by D2 above (+9.48 %) and a = 0 below (0 %), so D3 was
+;   unnecessary.
+;
+;   WHAT THAT BOUND DOES AND DOES NOT MEAN.
+;   a ~ 22 kPa matches the STRENGTH GAIN ALONE. At that value
+;   the model still gets the other signatures wrong:
+;     dilation    model ~-3.7 % against -2.35 % measured
+;     peak strain still mismatched
+;   The bound is a measure of how far the published a is from
+;   this material, NOT a working calibration.
 ;
 ;   DILATION FLOOR - THE DECISIVE RESULT.
-;   Volumetric strain at 20 % is MONOTONE in a:
+;   Volumetric strain at 20 % is STRICTLY MONOTONE in a over
+;   four points:
 ;     a =      0 : -3.10 %   <- the floor
+;     a =  25000 : -3.80 %
 ;     a =  50000 : -4.50 %
 ;     a = 200000 : -8.00 %
 ;   More cementation always means MORE dilation, because pb
@@ -162,7 +179,7 @@ def eicp_par_lab
 ;   coupling has now been demonstrated in three independent
 ;   contexts (Gai mu study, Gai a study, and the pc evolution
 ;   across the lab confinements). Bracket by trial.
-    $a_pa     = 25000.0      ; PHASE D2 (published 200000.0)
+    $a_pa     = 200000.0     ; PUBLISHED / VALIDATION CASE
     $mu_p     = 6.5          ; published
 ;
 ;-----------------------------------------------------------

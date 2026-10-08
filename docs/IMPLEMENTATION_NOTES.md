@@ -4,9 +4,18 @@ Implementation of Gai & Sánchez (2019), *An elastoplastic mechanical constituti
 model for microbially mediated cemented soils*, Acta Geotechnica 14:709–726,
 as a FISH user-defined model (UDM) for FLAC 8.0.
 
-## Programme status: COMPLETE
+## Programme status: ALL THREE STUDIES COMPLETE
 
-All four validation and sensitivity studies are finished. **16 FLAC runs.**
+**28 FLAC runs across three independent programmes.** The UDM
+`02_m_eicp.fis` was frozen after verification and modified in none of them.
+
+| Programme | Runs | Files | Status |
+|---|---|---|---|
+| **1. Verification** — Gai & Sánchez (2019) | 16 | `01_parameters.fis`, `t01`–`t03` | COMPLETE |
+| **2. External validation** — Kennedy et al. (2023) | 7 | `01c_params_kennedy.fis`, `t05` | COMPLETE |
+| **3. Laboratory validation** — own programme | 5 | `01d_params_lab.fis`, `t06` | COMPLETE |
+
+### 1. Verification — the implementation is correct
 
 | Study | Cases | Status |
 |---|---|---|
@@ -17,19 +26,39 @@ All four validation and sensitivity studies are finished. **16 FLAC runs.**
 | `a` sensitivity | a = 200, 300, 400 kPa | COMPLETE |
 | Table 6 confinement | σ₃ = 100, 200, 400 kPa | COMPLETE |
 
-**Headline result.** The model reproduces every qualitative behaviour the paper
-reports — strength and stiffness increasing with calcite content, earlier and
-sharper peaks, bond degradation driving post-peak softening, residuals
-converging toward the untreated host sand, and the dilative-to-compressive
-transition with confinement. Quantitatively it underpredicts peak strength by
-up to 16 % using published parameters, with p_c calibrated once against the
-untreated curve and never re-tuned.
+Every qualitative behaviour the paper reports is reproduced — strength and
+stiffness rising with calcite content, earlier and sharper peaks, bond
+degradation driving post-peak softening, residuals converging toward the
+untreated host sand, and the dilative-to-compressive transition with
+confinement. Peak strength is underpredicted by up to 16 % on published
+parameters. **The FISH implementation is sound.**
 
-**Parameter provenance.** κ, λ, M, D_s, ν, η, a and μ are the published values
-from Tables 1 and 2, unchanged. Only p_c was calibrated, because the paper does
-not report it. The `a` and μ sensitivity studies are reported sensitivities,
-not recalibrations — both parameters are restored to their published values in
-`01_parameters.fis`.
+### 2 and 3. Validation — four limitations of the model, not the code
+
+| # | Limitation | Evidence |
+|---|---|---|
+| 1 | **A fixed p_c cannot produce confinement-dependent strength scaling.** Quantitative when p_c ≫ σ₃; **qualitative** when p_c → 2σ₃, flipping the specimen to the wet side so no peak forms at all. | Kennedy p₀ ratio 1.10 delivered against 3.22 required; lab Phase B produced no peak where the laboratory shows 531.8 kPa |
+| 2 | **`a` does not transfer.** Over-predicts the cementation gain by 2.1× (Kennedy) and 8.2× (lab); effective value ≈ 22 kPa against a published 200 kPa. | Phase D bracket, linear in `a` over 25–200 kPa |
+| 3 | **η does not transfer.** Strain scale consistently ~1.7× too slow. | Lab Phase A: 1.84× on peak, 1.63× on phase transformation, agreeing to 13 % |
+| 4 | **The cementation kinematics are wrong for EICP, at any admissible `a`.** Measured dilation lies **outside** the model's accessible range. | Phase D dilation floor: strictly monotone over four values of `a`, measured −2.35 % against a floor of −3.10 % |
+
+**Limitation 4 is a falsification, not a mis-calibration** — and it was
+**pre-registered**, stated before D1 ran and confirmed across four values of
+`a`. Limitation 1 is structural and logically prior to 2 and 3, so report it
+first.
+
+> **Overall conclusion: the FORM of the Gai & Sánchez model transfers; its
+> CALIBRATION does not.** Two of the eight published parameters (`a`, η) fail
+> to carry over to EICP-treated silica sand, a third (p_c) cannot be
+> characterised by a single fixed value across confinements, and the dilatancy
+> response to cementation is qualitatively inverted.
+
+**Parameter provenance.** κ, λ, M, D_s, ν, η, a and μ are published values,
+unchanged. Only p_c was calibrated in each programme, and in each case against
+the **untreated** curve alone, so every treated run is a prediction. All
+sensitivity studies (μ, `a`) are reported sensitivities, not recalibrations;
+every parameter is restored to its published value in all three parameter
+files.
 
 ## How to run
 
@@ -822,7 +851,23 @@ specimens. It may be true, but Kennedy's three points cannot establish it.
 Report the model limitation; report the measured increments as data with their
 scatter acknowledged.
 
-## Laboratory Validation — own test programme
+## Laboratory Validation — own test programme — COMPLETE
+
+> **5 runs: Phases A–D.** p_c = 460,000 Pa is the sole fitted parameter,
+> calibrated on untreated US-100 only. M = 1.09 retained (bound M ≤ 1.147);
+> a, μ, D_s, ν, η published; κ, λ declared assumptions. UDM unchanged.
+>
+> | Phase | σ₃ | m_c | Outcome |
+> |---|---|---|---|
+> | **A** calibration | 100 kPa | 0 | **PASS** on magnitude (232 vs 238.1 kPa, −2.6 %); peak 1.84× late → η finding |
+> | **B** cross-validation | 200 kPa | 0 | **QUALITATIVE FAIL** — no peak; specimen on wet side |
+> | **C** blind prediction | 100 kPa | 2.67 % | **FAIL** — gain +68.1 % vs +8.3 %; all four signatures invert |
+> | **D** `a` bracket | 100 kPa | 2.67 % | **COMPLETE** — effective a ≈ 22 kPa; dilation falsified |
+>
+> **Three findings:** η does not transfer (~1.7× strain scale); a fixed p_c
+> flips the critical-state regime between confinements; and the measured
+> dilation is unreachable at any admissible `a`.
+
 
 Files: `scripts/01d_params_lab.fis`, `tests/t06_lab.dat`. The verified UDM
 `02_m_eicp.fis` is unchanged. p_c is the **sole fitted parameter**, calibrated
@@ -973,7 +1018,7 @@ fix for the model.
 where in Phase A it peaked 1.84× later. The strain error has reversed sign, so
 it is no longer the η effect; the cementation over-prediction dominates it.
 
-### Phase D — bracketing the effective `a` (in progress)
+### Phase D — bracketing the effective `a` — COMPLETE
 
 Same conditions as Phase C, varying only `$a_pa`. **Documented sensitivity, not
 a recalibration** — a = 200 kPa remains the validation case and must be
@@ -983,19 +1028,34 @@ restored afterwards.
 |---|---|---|---|---|---|---|
 | C | 200 kPa | 534.0 kPa | 0.1006 | 390 kPa at 3.0 % | **+68.1 %** | **−8.00 %** |
 | **D1** | **50 kPa** | **133.5 kPa** | **0.1685** | **274 kPa at 3.7 %** | **+18.1 %** | **−4.50 %** |
-| D2 | 25 kPa | 66.8 kPa | 0.1898 | pending | pending | pending |
-| D3 | 12.5 kPa | 33.4 kPa | 0.2027 | — | — | — |
+| **D2** | **25 kPa** | **66.8 kPa** | **0.1898** | **254 kPa at 4.0 %** | **+9.48 %** | **−3.80 %** |
+| D3 | 12.5 kPa | 33.4 kPa | 0.2027 | **not run** — bracket closed | — | — |
 | — | 0 (untreated) | 0 | 0.2174 | 232 kPa at 4.5 % | 0 | **−3.10 %** |
 | **Measured ET-100** | | | | **257.8 kPa at 3.73 %** | **+8.3 %** | **−2.35 %** |
 
-**Gain is linear in `a` over 50–200 kPa.** Scaling D1 up by four predicts
-+72.4 % against +68.1 % observed — 6 % sublinear. Interpolating D1 to the
-+8.3 % target gives **a ≈ 23 kPa**, bracketed between D3 and D2. The
-pre-run scaling expectation (+17.0 % for D1) was confirmed at +18.1 %.
+**Gain is linear in `a` over 25–200 kPa, mildly sublinear:**
 
-D1 state variables all correct: p_c 460 → 466 → 336 kPa (erodes = dry side),
-η peaks 1.43 then descends to 1.20, p_b 134 → 30 kPa, χ 1.00 → 0.22, R₀ = 0.17
-as predicted, servo 0.2 %, `unbal` zero.
+| a | 25 kPa | 50 kPa | 200 kPa |
+|---|---|---|---|
+| gain/a (%/kPa) | 0.379 | 0.362 | 0.341 |
+
+The falling gain per unit `a` is the p_c/p_b compensation — its **fourth**
+independent appearance (Gai μ study, Gai `a` study, lab p_c evolution across
+confinements, and here). Both pre-run scaling predictions were confirmed:
++17.0 % predicted / +18.1 % observed for D1, +9.0 % / +9.48 % for D2.
+
+**Effective `a` ≈ 22 kPa — 9.1× below the published 200 kPa.** From D2,
+25 × 8.3/9.48 = 21.9 kPa, bracketed by D2 above (+9.48 %) and a = 0 below.
+D3 was unnecessary.
+
+> **What that bound does and does not mean.** a ≈ 22 kPa matches the
+> **strength gain alone**. At that value the dilation is still ≈ −3.7 %
+> against −2.35 % measured, and the peak strain is still wrong. The bound
+> measures how far the published `a` sits from this material; it is **not a
+> working calibration.**
+
+State variables correct in both trials — p_c eroding (dry side) in each,
+η peaking then descending, R₀ matching prediction, servo 0.2 %, `unbal` zero.
 
 #### The dilation floor — decisive, and pre-registered
 
@@ -1005,9 +1065,13 @@ least-dilative state the model can produce:
 | a | ε_v at 20 % |
 |---|---|
 | 0 (untreated) | **−3.10 % ← the floor** |
+| 25 kPa | −3.80 % |
 | 50 kPa | −4.50 % |
 | 200 kPa | −8.00 % |
 | **Measured ET-100** | **−2.35 % ← below the floor** |
+
+Strictly monotone over **four** values of `a`. At the value matching the
+strength gain (≈22 kPa) the model gives ≈ −3.7 % against −2.35 % measured.
 
 More cementation always means *more* dilation, because p_b enters only through
 p₀ = R(p_c + p_b) and a larger surface drives the stress point further onto the
