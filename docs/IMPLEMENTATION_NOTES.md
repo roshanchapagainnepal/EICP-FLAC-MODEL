@@ -921,6 +921,83 @@ on peak and phase transformation. A monotonically hardening curve has neither.
 Servo tracked to 0.06 %, `unbal` zero. The model behaved correctly — the regime
 placement follows from the formulation, not from a numerical fault.
 
+### Phase C — blind cementation prediction, σ₃ = 100 kPa
+
+Specimen ET-100, m_c = 2.67 % (acid digestion), e₀ = 0.696 (Case A). p_c =
+460,000 Pa unchanged from Phase A; a = 200 kPa and μ = 6.5 at published values.
+p_b = 200000 × 1.0 × 2.67 = **534 kPa**, which *exceeds* p_c, so bonding
+dominates the surface. R₀ = 0.1006 as predicted.
+
+| | Measured ET-100 | Model |
+|---|---|---|
+| Peak q | 257.8 kPa at 3.73 % | 390 kPa at 3.0 % |
+| Post-peak | 17.3 % drop | softens to 200 kPa at 20 % |
+| **Gain over untreated** | 238 → 258 kPa = **+8.3 %** | 232 → 390 kPa = **+68.1 %** |
+
+**Over-prediction factor 8.2×**, against 2.1× in the Kennedy series.
+
+**State variables all behaved correctly**, confirming the run is sound and the
+error is in the parameter, not the implementation: p_c 460 → 265 kPa (erodes =
+dry side), η peaks at 1.70 then descends to 1.20 (dry-side signature), p_b
+535 → 110 kPa (79 % bond loss), χ 1.00 → 0.20, R saturating at 6–7 %, servo to
+0.2 %, `unbal` zero.
+
+#### The central finding: all four cementation signatures invert
+
+| Signature | Measured, untreated → treated | Model, untreated → treated |
+|---|---|---|
+| Peak strain | 2.45 → 3.73 % — **later** | 4.5 → 3.0 % — **earlier** |
+| Dilation at 20 % | −3.67 → −2.35 % — **less** | −3.10 → −8.00 % — **more** |
+| Brittleness | 21.7 → 17.3 % — **less** | 14.7 → 48.7 % — **more** |
+| Peak gain | **+8.3 %** | **+68.1 %** |
+
+This is qualitatively different from a mis-scaled parameter. The model and the
+specimen respond to cementation in **opposite directions** on three of the four
+signatures.
+
+> **No value of `a` can repair this.** p_b enters only through
+> p₀ = R(p_c + p_b), so increasing cementation can only enlarge the surface,
+> which necessarily pushes the stress point further onto the dry side and
+> therefore produces *more* dilation, *more* brittleness and an *earlier* peak.
+> The measured specimen does the reverse on all three. Reducing `a` shrinks the
+> model's shifts toward zero — i.e. toward *no* cementation effect — but cannot
+> reverse their sign. Only the **gain magnitude** is tunable.
+
+**Consequence for Phase D.** The bracketing study can find the `a` that matches
+the +8.3 % gain, but the other three signatures will remain inverted or
+collapse to no-change. Phase D therefore establishes a **bound on `a`**, not a
+fix for the model.
+
+**η test is no longer meaningful here.** The peak-strain ratio is 3.0/3.73 =
+0.80, i.e. **below** 1.0 — the model now peaks *earlier* than the specimen,
+where in Phase A it peaked 1.84× later. The strain error has reversed sign, so
+it is no longer the η effect; the cementation over-prediction dominates it.
+
+### Phase D — bracketing the effective `a` (in progress)
+
+Same conditions as Phase C, varying only `$a_pa`. **Documented sensitivity, not
+a recalibration** — a = 200 kPa remains the validation case and must be
+restored afterwards.
+
+| Trial | a | p_b | R₀ | dry while q < | gain if ~linear |
+|---|---|---|---|---|---|
+| C | 200 kPa | 534.0 kPa | 0.1006 | 1191 kPa | +68.1 % (observed) |
+| **D1** | **50 kPa** | **133.5 kPa** | **0.1685** | 590 kPa | +17.0 % |
+| D2 | 25 kPa | 66.8 kPa | 0.1898 | 490 kPa | +8.5 % |
+| D3 | 12.5 kPa | 33.4 kPa | 0.2027 | 440 kPa | +4.3 % |
+| — | 0 | 0 | 0.2174 | 390 kPa | 0 (untreated) |
+
+Target: **+8.3 %** over the model's own 232 kPa untreated baseline, i.e. a peak
+near 258 kPa. All three trials stay on the dry side, so each yields a usable
+peak.
+
+The final column is a **scaling expectation, not a derivation** — the Gai `a`
+study found the *gain* roughly linear in `a` (+35.7 / +52.4 / +69.0 % at
+200 / 300 / 400 kPa) even though peak q itself is sublinear. On that basis D2
+would land near target. Treat it as a prediction to be tested: the regime here
+differs (p_b/p_c = 1.16 at Phase C against 0.6 in the Gai study), so a
+departure from linearity is informative rather than a problem.
+
 ## Still to verify
 
 Nothing remains for the validation programme. Optional extensions:

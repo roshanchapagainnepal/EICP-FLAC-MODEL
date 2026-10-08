@@ -112,7 +112,29 @@ def eicp_par_lab
 ; Kennedy series found it over-predicts EICP cementation by a
 ; factor of about 2.1 at a clean comparison point.
 ;-----------------------------------------------------------
-    $a_pa     = 200000.0     ; published - THE QUANTITY UNDER TEST
+;
+;   a - PHASE D BRACKETING STUDY IN PROGRESS.
+;   Phase C applied the published a = 200 kPa blind and
+;   over-predicted the cementation gain by 8.2x (+68.1 %
+;   model against +8.3 % measured). Phase D brackets the
+;   effective value by trial:
+;     C   a = 200000 Pa  pb = 534.0 kPa  gain +68.1 % (done)
+;     D1  a =  50000 Pa  pb = 133.5 kPa  R0 = 0.1685
+;     D2  a =  25000 Pa  pb =  66.8 kPa  R0 = 0.1898
+;     D3  a =  12500 Pa  pb =  33.4 kPa  R0 = 0.2027
+;   All three remain on the DRY side at sigma3 = 100 kPa
+;   (dry while q < 590 / 490 / 440 kPa against a 258 kPa
+;   target), so each run yields a usable peak.
+;
+;   THIS IS A DOCUMENTED SENSITIVITY, NOT A RECALIBRATION.
+;   a = 200 kPa remains the validation case. RESTORE IT when
+;   Phase D is finished - the Phase A-C results depend on it.
+;
+;   Back-calculating a from the gain is INVALID. The pc/pb
+;   coupling has now been demonstrated in three independent
+;   contexts (Gai mu study, Gai a study, and the pc evolution
+;   across the lab confinements). Bracket by trial.
+    $a_pa     = 50000.0      ; PHASE D1 (published 200000.0)
     $mu_p     = 6.5          ; published
 ;
 ;-----------------------------------------------------------
