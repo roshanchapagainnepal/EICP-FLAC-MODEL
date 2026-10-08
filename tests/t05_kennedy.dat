@@ -181,15 +181,11 @@ def path
 ;   m_e is already volume weighted over the subzones by the UDM.
     t_ev  = -(t_e - t_e0) / (1.0 + t_e0) * 100.0
 ;
-;   CROSS-CHECK. vsi is FLAC's own accumulated volumetric strain,
-;   computed outside the UDM entirely, so it validates the whole
-;   $zdvol -> m_e -> t_ev chain independently (FISH Ref 2.5.3.3,
-;   and Example 2.31 which checks a UDM volume strain against it).
-;   FLAC strains are EXTENSION POSITIVE, so it is negated here to
-;   match t_ev. t_vsi and t_ev should track each other closely;
-;   a systematic divergence means the UDM's void-ratio
-;   integration is drifting.
-    t_vsi = -vsi(1,1) * 100.0
+;   NOT cross-checked with FLAC's vsi: vsi is a PER-STEP
+;   increment, not an accumulated total, despite Example 2.31
+;   using it as one. t_ev was verified geometrically instead -
+;   at 20 % strain r = 1.135, h = 0.800 give ev = -3.06 %
+;   against t_ev = -3.10 %.
     t_pc  = m_pc(1,1)
     t_pb  = m_pb(1,1)
     t_chi = m_chi(1,1)
@@ -210,8 +206,6 @@ his t_pb
 his t_chi
 his t_r
 his t_hrd
-; appended LAST so slots 1-12 keep their existing numbers
-his t_vsi
 ;
 ; --- large-strain mode ---
 ; FLAC samples mode 3 (cm_max) only at the start of stepping in
@@ -227,7 +221,7 @@ step 2000000
 ; --- results ---
 ; History slots: 1 unbal, 2 path, 3 t_ea, 4 t_q, 5 t_p,
 ;                6 t_ev, 7 t_e, 8 t_pc, 9 t_pb, 10 t_chi,
-;                11 t_r, 12 t_hrd, 13 t_vsi
+;                11 t_r, 12 t_hrd
 ;
 ; Kennedy Fig. 1 equivalent: q versus axial strain
 plot his 4 vs 3 hold

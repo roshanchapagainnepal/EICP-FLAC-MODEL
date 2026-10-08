@@ -179,15 +179,11 @@ def path
 ;   which matters in axisymmetry where subzone volumes differ.
     t_ev  = -(t_e - t_e0) / (1.0 + t_e0) * 100.0
 ;
-;   CROSS-CHECK. vsi is FLAC's own accumulated volumetric
-;   strain, computed outside the UDM entirely, so it validates
-;   the whole $zdvol -> m_e -> t_ev chain independently (FISH
-;   Ref 2.5.3.3, and Example 2.31 which checks a UDM volume
-;   strain against it). FLAC strains are EXTENSION POSITIVE,
-;   so it is negated here to match t_ev. t_vsi and t_ev should
-;   track each other closely; a systematic divergence means
-;   the void-ratio integration is drifting.
-    t_vsi = -vsi(1,1) * 100.0
+;   NOT cross-checked with FLAC's vsi: vsi is a PER-STEP
+;   increment, not an accumulated total, despite Example 2.31
+;   using it as one. t_ev was verified geometrically instead -
+;   at 20 % strain r = 1.135, h = 0.800 give V = 3.2376 against
+;   V0 = 3.1416, i.e. ev = -3.06 % against t_ev = -3.10 %.
 ;
     t_pc  = m_pc(1,1)
     t_pb  = m_pb(1,1)
@@ -209,7 +205,6 @@ his t_pb
 his t_chi
 his t_r
 his t_hrd
-his t_vsi
 his t_eta
 his t_sr
 ;
@@ -227,24 +222,22 @@ step 2000000
 ; --- results ---
 ; History slots: 1 unbal, 2 path, 3 t_ea, 4 t_q, 5 t_p,
 ;                6 t_ev, 7 t_e, 8 t_pc, 9 t_pb, 10 t_chi,
-;                11 t_r, 12 t_hrd, 13 t_vsi, 14 t_eta, 15 t_sr
+;                11 t_r, 12 t_hrd, 13 t_eta, 14 t_sr
 ;
 ; stress-strain: q versus axial strain
 plot his 4 vs 3 hold
 ; volumetric strain versus axial strain (compression positive)
 plot his 6 vs 3 hold
-; volumetric strain CROSS-CHECK: t_ev and t_vsi must overlie
-plot his 6 13 vs 3 hold
 ; stress path in p'-q space
 plot his 4 vs 5 hold
 ; stress ratio: approaches M = 1.09 only at critical state
-plot his 14 vs 3 hold
+plot his 13 vs 3 hold
 ; cementation state: damage factor and sub-loading ratio
 plot his 10 11 vs 3 hold
 ; hardening: pc, pb and the effective hardening parameter
 plot his 8 9 12 vs 3 hold
 ; servo check: radial stress must hold flat at t_sig3
-plot his 15 vs 3 hold
+plot his 14 vs 3 hold
 ;
 print m_e m_pc m_pb m_chi m_r m_ind m_epv m_epq
 ;
