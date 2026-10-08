@@ -52,8 +52,8 @@ def eicp_par_lab
 ;   SCALE of the response: how much straining is needed for
 ;   the sub-loading surface to inflate out to the stress path.
 ;
-;   Phase A found the model's peak at 5.0 % axial strain
-;   against a measured 2.45 % - 2.04x too late - with the
+;   Phase A found the model's peak at 4.5 % axial strain
+;   against a measured 2.45 % - 1.84x too late - with the
 ;   magnitude correct to -2.6 %. The phase transformation is
 ;   likewise 1.63x late (4.0 % against 2.45 %). R is growing
 ;   too slowly, so eta = 60 is too LOW for this sand; a higher
@@ -152,18 +152,18 @@ def eicp_par_lab
 ;     Model  232 kPa          -> -2.6 %, within band
 ;
 ;   STRAIN TO PEAK - FAIL, recorded as a finding
-;     Target 2.45 %,  Model 5.0 %   -> 2.04x too late
+;     Target 2.45 %,  Model 4.5 %   -> 1.84x too late
 ;
 ;   VOLUMETRIC RESPONSE
 ;     Measured -3.67 % at 20 %,  Model -3.10 %
 ;     Phase transformation: measured 2.45 %, model 4.0 %
 ;                                        -> 1.63x too late
 ;
-;   The two strain stretches (2.04x on peak, 1.63x on phase
-;   transformation) are of similar magnitude and the same
-;   sign, consistent with ONE underlying effect on the strain
-;   scale rather than two independent errors. They are not
-;   identical, so quote both rather than a single factor.
+;   The two strain stretches (1.84x on peak, 1.63x on phase
+;   transformation) agree to within 13 % of each other and
+;   share the same sign, which is strong support for ONE
+;   underlying effect on the strain scale rather than two
+;   independent errors. Quote both; the mean is ~1.7x.
 ;
 ;   t_ev VERIFIED INDEPENDENTLY against deformed geometry:
 ;     r = 1.135, h = 0.800 -> V = 3.2376 against V0 = 3.1416
@@ -188,6 +188,65 @@ def eicp_par_lab
 ; DO NOT RE-TUNE. Every later run - other confinements, any
 ; treated specimen - is cross-validation or prediction against
 ; this single value.
+;
+; ---- PHASE B CROSS-VALIDATION AT sigma3 = 200 kPa: FAILS
+;      QUALITATIVELY ----
+;
+; Same pc, same sand, same density, mc = 0. Result: the model
+; produced NO PEAK. q rose to 270 kPa at 6 % and kept climbing
+; to 315 kPa at 20 %. Measured US-200 peaks at 531.8 kPa at
+; 5.03 % with a 6.7 % post-peak drop.
+;   Magnitude: 315 against 531.8 kPa, -41 %
+;   Scaling:   model 1.36 against measured 2.23 (100 -> 200)
+;
+; CAUSE - the specimen is on the WRONG SIDE OF CRITICAL STATE.
+; Critical state sits at p' = p0/2. With mc = 0 (pb = 0) and
+; R -> 1, p0 = pc = 460 kPa, so the boundary is p' = 230 kPa.
+; On the drained path p' = sigma3 + q/3 the dry-side condition
+; p' < 230 kPa becomes q < 3(230 - sigma3):
+;     sigma3 = 100 kPa : dry while q <  390 kPa
+;                        (peak occurs at 232 kPa -> DRY, correct)
+;     sigma3 = 200 kPa : dry while q <   90 kPa
+;                        (q passes 90 kPa almost immediately
+;                         -> WET for the whole test, wrong)
+; A wet-side specimen compacts and hardens monotonically. It
+; cannot peak, so no peak is possible at this confinement with
+; this pc. Both real specimens were dense and dilatant.
+;
+; CONFIRMED BY THE MODEL'S OWN INTERNALS - two independent
+; readouts, neither used in the diagnosis:
+;   pc evolution (sign of dpc is the cleanest side indicator):
+;     sigma3 = 100 : 460 -> 470 -> 368 kPa  (erodes  = dry)
+;     sigma3 = 200 : 460 -> 520 -> 576 kPa  (rises   = wet)
+;   stress ratio eta:
+;     sigma3 = 100 : overshoots then descends, 1.32 -> 1.20
+;     sigma3 = 200 : approaches M = 1.09 from BELOW, 1.02 at
+;                    20 % and still rising
+;
+; THIS IS A QUALITATIVE FAILURE, AND STRONGER THAN ANYTHING IN
+; THE KENNEDY SERIES. There the same fixed-pc limitation gave
+; magnitude errors only (-1 %, +47 %, +146 %) because
+; pc = 1350 kPa put p0/2 = 675 kPa, beyond p' at peak for all
+; three confinements, so every specimen stayed on the dry side
+; and the curve SHAPE was always right. Here pc = 460 kPa puts
+; the boundary at 230 kPa, barely above sigma3 = 200 kPa
+; itself, so the regime flips and the shape is wrong - no peak
+; where the laboratory shows a clear peak with softening.
+;
+; UNIFYING STATEMENT: a single fixed pc misses the confinement
+; scaling of strength. When pc is large relative to sigma3 the
+; error is quantitative; when pc approaches 2 x sigma3 the
+; specimen crosses to the wet side and the error becomes
+; qualitative.
+;
+; ETA PREDICTION UNTESTABLE HERE. The 1.84x / 1.63x strain
+; stretches were measured on peak and phase transformation.
+; A monotonically hardening curve has neither, so Phase B
+; cannot test eta either way.
+;
+; Servo tracked to 0.06 %; unbalanced force zero throughout.
+; The model behaved correctly - the regime placement is a
+; consequence of the formulation, not a numerical fault.
 ;-----------------------------------------------------------
     $ini_pc_lab = 460000.0   ; CALIBRATED (Pa) - sole fitted param
     $ini_pc     = 460000.0   ; UDM fallback, keep equal to above

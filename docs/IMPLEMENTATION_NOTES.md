@@ -822,6 +822,105 @@ specimens. It may be true, but Kennedy's three points cannot establish it.
 Report the model limitation; report the measured increments as data with their
 scatter acknowledged.
 
+## Laboratory Validation — own test programme
+
+Files: `scripts/01d_params_lab.fis`, `tests/t06_lab.dat`. The verified UDM
+`02_m_eicp.fis` is unchanged. p_c is the **sole fitted parameter**, calibrated
+against the untreated specimen US-100 only; M = 1.09, D_s, ν, η, a and μ are
+published values, κ and λ are declared assumptions.
+
+**M = 1.09 retained, not calibrated.** Both specimens were still softening at
+the 20 % termination strain (dq/dε_a = −3.47 and −1.29 kPa/%), so the
+end-of-test stress ratio is an **upper bound** on M, not a measurement. The
+binding bound is M ≤ 1.147, which the published 1.09 satisfies. This is a
+one-sided consistency check — contrast Kennedy, where φ′_res = 34.43° at
+residual with c′ = 0 gave a genuine measurement of M = 1.393 and a real
+mismatch.
+
+### Phase A — untreated calibration, σ₃ = 100 kPa: PASS on magnitude
+
+| | Target | Model | |
+|---|---|---|---|
+| Peak q | 238.1 kPa | 232 kPa | **−2.6 %**, within the 228–248 band |
+| Strain at peak | 2.45 % | 4.5 % | **1.84× too late** |
+| Volumetric at 20 % | −3.67 % | −3.10 % | |
+| Phase transformation | 2.45 % | 4.0 % | **1.63× too late** |
+
+p_c = **460,000 Pa** accepted (R₀ = 0.2174). Servo held 100,050–100,075 Pa;
+`unbal` zero.
+
+`t_ev` verified independently against deformed geometry: at 20 % strain
+r = 1.135, h = 0.800 give V = 3.2376 against V₀ = 3.1416, i.e. ε_v = −3.06 %
+against t_ev = −3.10 %. (FLAC's `vsi` is a **per-step increment**, not a total,
+despite Example 2.31 using it as one; it was discarded and removed from the
+drivers.)
+
+**η finding.** The two strain stretches (1.84× and 1.63×) agree to within 13 %
+and share the same sign — strong support for **one** underlying effect on the
+strain scale rather than two independent errors, mean ≈ 1.7×. η sets the rate R
+inflates the surface (Eq. 6) and does not enter p₀, so R is growing too slowly:
+**η = 60 is too low for this sand**, and raising it would move the peak earlier
+without changing its magnitude. Retained unchanged and reported as a finding.
+
+**This is the second published parameter found not to transfer**, alongside
+a = 200 kPa (Kennedy: over-predicts the cementation increment ~2.1×). Both were
+calibrated on MICP-treated Ottawa sand. Together they bound what carries over:
+**the form of the model transfers, the calibration does not.**
+
+### Phase B — cross-validation at σ₃ = 200 kPa: QUALITATIVE FAILURE
+
+Same p_c, same sand, same density, m_c = 0. **The model produced no peak at
+all** — q rose to 270 kPa at 6 % and kept climbing to 315 kPa at 20 %, against
+a measured US-200 peak of 531.8 kPa at 5.03 % with a 6.7 % post-peak drop.
+
+| | Measured | Model |
+|---|---|---|
+| Peak q | 531.8 kPa at 5.03 % | none; 315 kPa at 20 %, still rising |
+| Magnitude | — | **−41 %** |
+| Scaling 100 → 200 | 2.23 | **1.36** |
+
+**Cause — the specimen is on the wrong side of critical state.** Critical state
+is at p′ = p₀/2. With p_b = 0 and R → 1, p₀ = p_c = 460 kPa, so the boundary is
+p′ = 230 kPa. On the drained path p′ = σ₃ + q/3, the dry-side condition
+p′ < 230 kPa becomes q < 3(230 − σ₃):
+
+| σ₃ | dry while | outcome |
+|---|---|---|
+| 100 kPa | q < **390 kPa** | peak at 232 kPa → **dry, correct** |
+| 200 kPa | q < **90 kPa** | q passes 90 kPa at once → **wet, wrong** |
+
+A wet-side specimen compacts and hardens monotonically; it cannot peak. Both
+real specimens were dense and dilatant.
+
+**Confirmed by two internal readouts not used in the diagnosis:**
+
+| Readout | σ₃ = 100 kPa | σ₃ = 200 kPa |
+|---|---|---|
+| p_c evolution | 460 → 470 → 368 kPa (**erodes** = dry) | 460 → 520 → 576 kPa (**rises** = wet) |
+| Stress ratio η | overshoots then descends, 1.32 → 1.20 | approaches M = 1.09 **from below**, 1.02 at 20 % and still rising |
+
+The sign of dp_c as the cleanest wet/dry indicator is the same diagnostic
+identified in the Gai Table 6 confinement series — third independent appearance.
+
+**Stronger than anything in the Kennedy series.** There the identical fixed-p_c
+limitation produced **magnitude** errors only (−1 %, +47 %, +146 %), because
+p_c = 1350 kPa put p₀/2 = 675 kPa beyond p′ at peak for all three
+confinements — every specimen stayed on the dry side and the curve **shape** was
+always right. Here p_c = 460 kPa puts the boundary at 230 kPa, barely above
+σ₃ = 200 kPa itself, so the regime flips and the shape is wrong.
+
+> **Unifying statement.** A single fixed p_c misses the confinement scaling of
+> strength. When p_c is large relative to σ₃ the error is *quantitative*; when
+> p_c approaches 2σ₃ the specimen crosses to the wet side and the error becomes
+> *qualitative* — no peak where the laboratory shows a clear peak with
+> softening.
+
+**η untestable at this confinement.** The 1.84× / 1.63× stretches were measured
+on peak and phase transformation. A monotonically hardening curve has neither.
+
+Servo tracked to 0.06 %, `unbal` zero. The model behaved correctly — the regime
+placement follows from the formulation, not from a numerical fault.
+
 ## Still to verify
 
 Nothing remains for the validation programme. Optional extensions:

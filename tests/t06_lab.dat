@@ -75,9 +75,13 @@ def set_case
 end
 ;
 ; --- CASE SELECTION: edit these three values ---
-set t_sig3=200000.0   ; confining pressure, Pa
-set t_mc=0.0          ; calcite content in PERCENT (0 = untreated)
-set t_e0=0.740        ; measured void ratio, specimen US-100
+set t_sig3=100000.0   ; confining pressure, Pa
+set t_mc=2.67         ; calcite content, PERCENT of sand mass
+;                       (acid digestion, tested specimen)
+set t_e0=0.696        ; measured void ratio, Case A: digestion
+;                       total 140.06 g exceeds 133 g, so 133 g
+;                       was the sand mass and the calcite
+;                       precipitated in addition to it
 ;
 ; --- properties ---
 ; m_pc is NOT set here - set_case assigns it from $ini_pc_lab
